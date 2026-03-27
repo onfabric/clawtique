@@ -73,7 +73,7 @@ export class LocalOpenClawDriver implements OpenClawDriver {
 
   async cronAdd(cron: CronDef & { dressId: string }): Promise<void> {
     const name = `[${cron.dressId}] ${cron.name}`;
-    const message = `Follow the instructions in ~/.openclaw/skills/${cron.skill}/SKILL.md`;
+    const message = `Use the ${cron.skill} skill. Run \`openclaw skills info ${cron.skill}\` if you need to locate its SKILL.md.`;
     const { exitCode, stderr } = await this.exec([
       'cron', 'add',
       '--name', name,

@@ -10,7 +10,7 @@
     }
   },
   "types": "./dist/index.d.ts",
-  "files": ["dist", "GUIDE.md"],
+  "files": ["dist", "skills"],
   "keywords": ["clawset", "clawset-dress", "fitness"],
   "clawset": {
     "type": "dress",
