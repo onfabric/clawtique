@@ -42,7 +42,7 @@ export default class Status extends BaseCommand {
       );
 
       if (entry.applied.crons.length > 0) {
-        this.log(`    crons: ${entry.applied.crons.map((c) => c.split(':').pop()).join(', ')}`);
+        this.log(`    crons: ${entry.applied.crons.map((c) => c.displayName).join(', ')}`);
       }
       if (entry.applied.skills.length > 0) {
         this.log(`    skills: ${entry.applied.skills.join(', ')}`);

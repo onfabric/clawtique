@@ -100,8 +100,13 @@ export const resolvedDressSchema = z.object({
 // State file — tracks what clawset has applied
 // ---------------------------------------------------------------------------
 
+export const appliedCronSchema = z.object({
+  qualifiedId: z.string(),
+  displayName: z.string(),
+});
+
 export const appliedStateSchema = z.object({
-  crons: z.array(z.string()).default([]),
+  crons: z.array(appliedCronSchema).default([]),
   skills: z.array(z.string()).default([]),
   plugins: z.array(z.string()).default([]),
   memorySections: z.array(z.string()).default([]),
@@ -138,6 +143,7 @@ export const clawsetConfigSchema = z.object({
 // ---------------------------------------------------------------------------
 
 export type DressId = z.infer<typeof dressIdSchema>;
+export type AppliedCron = z.infer<typeof appliedCronSchema>;
 export type CronDef = z.infer<typeof cronDefSchema>;
 export type MemoryContract = z.infer<typeof memoryContractSchema>;
 export type Requires = z.infer<typeof requiresSchema>;
@@ -148,3 +154,4 @@ export type AppliedState = z.infer<typeof appliedStateSchema>;
 export type DressEntry = z.infer<typeof dressEntrySchema>;
 export type StateFile = z.infer<typeof stateFileSchema>;
 export type ClawsetConfig = z.infer<typeof clawsetConfigSchema>;
+

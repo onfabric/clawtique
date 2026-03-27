@@ -1,6 +1,6 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import type { OpenClawDriver, CronListEntry, CronDef } from '@clawset/core';
+import type { OpenClawDriver, CronListEntry, CronDef, AppliedCron } from '@clawset/core';
 
 const execFileAsync = promisify(execFile);
 
@@ -75,22 +75,22 @@ export class LocalOpenClawDriver implements OpenClawDriver {
     }
   }
 
-  async cronRemove(name: string): Promise<void> {
-    // openclaw cron rm requires the job UUID, so look it up by name first
+  async cronRemove(cron: AppliedCron): Promise<void> {
+    // openclaw cron rm requires the job UUID, so look it up by display name
     const { stdout } = await this.exec(['cron', 'list', '--json']);
     let id: string | undefined;
     try {
       const data = JSON.parse(stdout);
       const jobs: Record<string, unknown>[] = Array.isArray(data) ? data : (data.jobs ?? []);
-      const job = jobs.find((j) => String(j['name'] ?? '') === name);
+      const job = jobs.find((j) => String(j['name'] ?? '') === cron.displayName);
       if (job) id = String(job['id']);
     } catch { /* ignore parse errors */ }
     if (!id) {
-      throw new Error(`Cron "${name}" not found`);
+      throw new Error(`Cron "${cron.displayName}" (${cron.qualifiedId}) not found in openclaw`);
     }
     const { exitCode, stderr } = await this.exec(['cron', 'rm', id]);
     if (exitCode !== 0) {
-      throw new Error(`Failed to remove cron "${name}": ${stderr}`);
+      throw new Error(`Failed to remove cron "${cron.displayName}": ${stderr}`);
     }
   }
 

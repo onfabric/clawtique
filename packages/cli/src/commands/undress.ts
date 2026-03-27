@@ -74,7 +74,7 @@ export default class Undress extends BaseCommand {
     this.log(chalk.bold(`\nUndressing "${args.id}":\n`));
 
     for (const c of cronsToRemove) {
-      this.log(`  ${chalk.red('-')} cron: ${c}`);
+      this.log(`  ${chalk.red('-')} cron: ${c.displayName}`);
     }
     for (const s of skillsToRemove) {
       this.log(`  ${chalk.red('-')} skill: ${s}`);
@@ -127,11 +127,9 @@ export default class Undress extends BaseCommand {
           title: 'Removing crons',
           skip: () => cronsToRemove.length === 0,
           task: async () => {
-            for (const qualifiedId of cronsToRemove) {
-              const cronId = qualifiedId.includes(':') ? qualifiedId.split(':')[1] : qualifiedId;
-              const cronName = `[${args.id}] ${cronId}`;
+            for (const cron of cronsToRemove) {
               try {
-                await this.openclawDriver.cronRemove(cronName);
+                await this.openclawDriver.cronRemove(cron);
               } catch {
                 // Cron may have been manually removed
               }
@@ -183,7 +181,7 @@ export default class Undress extends BaseCommand {
       await tasks.run();
 
       const body = [
-        cronsToRemove.length > 0 ? `removed crons: ${cronsToRemove.join(', ')}` : '',
+        cronsToRemove.length > 0 ? `removed crons: ${cronsToRemove.map((c) => c.qualifiedId).join(', ')}` : '',
         pluginsToRemove.length > 0 ? `removed plugins: ${pluginsToRemove.join(', ')}` : '',
         pluginsRetained.length > 0 ? `retained plugins: ${pluginsRetained.join(', ')}` : '',
         skillsToRemove.length > 0 ? `removed skills: ${skillsToRemove.join(', ')}` : '',

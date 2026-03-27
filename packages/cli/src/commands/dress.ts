@@ -14,6 +14,7 @@ import {
   type DressEntry,
   type StateFile,
   type ParamDef,
+  type AppliedCron,
 } from '@clawset/core';
 import { BaseCommand } from '../base.js';
 import { installDress, resolveDress } from '../lib/installer.js';
@@ -182,7 +183,7 @@ export default class Dress extends BaseCommand {
     const snapshot = await this.gitManager.snapshot();
 
     try {
-      const appliedCrons: string[] = [];
+      const appliedCrons: AppliedCron[] = [];
       const appliedFiles: string[] = [];
 
       const tasks = new Listr([
@@ -192,7 +193,10 @@ export default class Dress extends BaseCommand {
           task: async () => {
             for (const cron of diff.cronsToAdd) {
               await this.openclawDriver.cronAdd(cron);
-              appliedCrons.push(`${cron.dressId}:${cron.id}`);
+              appliedCrons.push({
+                qualifiedId: `${cron.dressId}:${cron.id}`,
+                displayName: `[${cron.dressId}] ${cron.name}`,
+              });
             }
           },
         },
@@ -357,11 +361,11 @@ export default class Dress extends BaseCommand {
         optionalDresses: {},
       },
       secrets: {},
-      crons: entry.applied.crons.map((qualifiedId) => {
-        const cronId = qualifiedId.includes(':') ? qualifiedId.split(':')[1] : qualifiedId;
+      crons: entry.applied.crons.map((c) => {
+        const cronId = c.qualifiedId.includes(':') ? c.qualifiedId.split(':')[1] : c.qualifiedId;
         return {
           id: cronId,
-          name: cronId,
+          name: c.displayName.replace(/^\[.*?\]\s*/, ''),
           schedule: '',
           prompt: '',
         };

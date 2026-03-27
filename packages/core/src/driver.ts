@@ -1,4 +1,4 @@
-import type { CronDef } from './schema.js';
+import type { CronDef, AppliedCron } from './schema.js';
 
 /**
  * Interface for interacting with an OpenClaw instance.
@@ -10,7 +10,7 @@ export interface OpenClawDriver {
   // Cron management
   cronList(): Promise<CronListEntry[]>;
   cronAdd(cron: CronDef & { dressId: string }): Promise<void>;
-  cronRemove(name: string): Promise<void>;
+  cronRemove(cron: AppliedCron): Promise<void>;
 
   // Config reading
   configGet(key: string): Promise<unknown>;

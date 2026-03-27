@@ -74,7 +74,7 @@ export class StateManager {
     const skills = new Set<string>();
 
     for (const entry of Object.values(state.dresses)) {
-      for (const c of entry.applied.crons) crons.add(c);
+      for (const c of entry.applied.crons) crons.add(c.qualifiedId);
       for (const p of entry.applied.plugins) plugins.add(p);
       for (const s of entry.applied.skills) skills.add(s);
     }
