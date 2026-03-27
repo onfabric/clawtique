@@ -224,26 +224,18 @@ export default class Dress extends BaseCommand {
       const installedSkills: string[] = [];
       const installedPlugins: string[] = [];
 
-      // Phase 1: install plugins and restart gateway
+      // Phase 1: install plugins, run setup, restart gateway
       if (pluginsToInstall.length > 0) {
-        const pluginTasks = new Listr([
-          {
-            title: 'Installing plugins',
-            task: async () => {
-              for (const plugin of pluginsToInstall) {
-                await this.openclawDriver.pluginInstall(plugin.spec);
-                installedPlugins.push(plugin.id);
-              }
-            },
+        const installTask = new Listr([{
+          title: 'Installing plugins',
+          task: async () => {
+            for (const plugin of pluginsToInstall) {
+              await this.openclawDriver.pluginInstall(plugin.spec);
+              installedPlugins.push(plugin.id);
+            }
           },
-          {
-            title: 'Restarting gateway',
-            task: async () => {
-              await this.openclawDriver.gatewayRestart();
-            },
-          },
-        ], { concurrent: false });
-        await pluginTasks.run();
+        }], { concurrent: false });
+        await installTask.run();
 
         // Run interactive setup commands outside Listr so stdio works
         for (const plugin of pluginsToInstall) {
@@ -259,7 +251,22 @@ export default class Dress extends BaseCommand {
             child.on('error', reject);
           });
         }
+
+        // Restart gateway and wait for it to be healthy
         this.log('');
+        const restartTask = new Listr([{
+          title: 'Restarting gateway',
+          task: async () => {
+            await this.openclawDriver.gatewayRestart();
+            for (let i = 0; i < 10; i++) {
+              await new Promise((r) => setTimeout(r, 2_000));
+              const h = await this.openclawDriver.health();
+              if (h.ok) return;
+            }
+            throw new Error('Gateway did not become healthy after restart');
+          },
+        }], { concurrent: false });
+        await restartTask.run();
       }
 
       // Phase 2: skills, crons, config files
