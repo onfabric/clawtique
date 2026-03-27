@@ -33,12 +33,12 @@ export class LocalOpenClawDriver implements OpenClawDriver {
     }
   }
 
-  async exec(args: string[]): Promise<{ stdout: string; stderr: string; exitCode: number }> {
+  async exec(args: string[], options?: { timeout?: number }): Promise<{ stdout: string; stderr: string; exitCode: number }> {
     if (this.execOverride) return this.execOverride(args);
     try {
       const { stdout, stderr } = await execFileAsync(this.bin, args, {
         env: { ...process.env, ...this.env },
-        timeout: 30_000,
+        timeout: options?.timeout ?? 30_000,
       });
       return { stdout, stderr, exitCode: 0 };
     } catch (err: unknown) {
@@ -146,7 +146,7 @@ export class LocalOpenClawDriver implements OpenClawDriver {
   }
 
   async pluginInstall(spec: string): Promise<void> {
-    const { exitCode, stderr } = await this.exec(['plugins', 'install', spec]);
+    const { exitCode, stderr } = await this.exec(['plugins', 'install', spec], { timeout: 120_000 });
     if (exitCode !== 0) {
       throw new Error(`Failed to install plugin "${spec}": ${stderr}`);
     }
