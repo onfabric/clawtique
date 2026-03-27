@@ -43,6 +43,16 @@
         "typescript": "^5.7.0",
       },
     },
+    "packages/dress-fabric": {
+      "name": "@clawset/dress-fabric",
+      "version": "1.0.0",
+      "dependencies": {
+        "@clawset/core": "workspace:*",
+      },
+      "devDependencies": {
+        "typescript": "^5.7.0",
+      },
+    },
     "packages/dress-fitness-coach": {
       "name": "@clawset/dress-fitness-coach",
       "version": "1.0.0",
@@ -68,6 +78,8 @@
     "@clawset/cli": ["@clawset/cli@workspace:packages/cli"],
 
     "@clawset/core": ["@clawset/core@workspace:packages/core"],
+
+    "@clawset/dress-fabric": ["@clawset/dress-fabric@workspace:packages/dress-fabric"],
 
     "@clawset/dress-fitness-coach": ["@clawset/dress-fitness-coach@workspace:packages/dress-fitness-coach"],
 

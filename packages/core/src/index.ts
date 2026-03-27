@@ -6,6 +6,9 @@ export {
   paramDefSchema,
   secretDefSchema,
   cronDefSchema,
+  pluginDefSchema,
+  pluginSecretSchema,
+  pluginConfigValueSchema,
   memoryContractSchema,
   requiresSchema,
   dressFilesSchema,
@@ -20,6 +23,8 @@ export {
 export type {
   DressId,
   CronDef,
+  PluginDef,
+  PluginSecret,
   MemoryContract,
   Requires,
   SecretDef,

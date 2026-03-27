@@ -60,11 +60,33 @@ export const memoryContractSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
+// Plugin definition — a required openclaw plugin
+// ---------------------------------------------------------------------------
+
+export const pluginConfigValueSchema = z.union([
+  z.string(),
+  z.number(),
+  z.boolean(),
+]);
+
+export const pluginSecretSchema = z.object({
+  description: z.string(),
+  url: z.string().url().optional(),
+});
+
+export const pluginDefSchema = z.object({
+  id: z.string(),
+  spec: z.string(),
+  config: z.record(z.string(), pluginConfigValueSchema).default({}),
+  secrets: z.record(z.string(), pluginSecretSchema).default({}),
+});
+
+// ---------------------------------------------------------------------------
 // Requires — dependencies on openclaw primitives and other dresses
 // ---------------------------------------------------------------------------
 
 export const requiresSchema = z.object({
-  plugins: z.array(z.string()).default([]),
+  plugins: z.array(pluginDefSchema).default([]),
   skills: z.array(z.string()).default([]),
   dresses: z.record(z.string(), z.string()).default({}),
   optionalDresses: z.record(z.string(), z.string()).default({}),
@@ -110,6 +132,7 @@ export const appliedStateSchema = z.object({
   skills: z.array(z.string()).default([]),
   installedSkills: z.array(z.string()).default([]), // skills clawset actually installed (vs pre-existing)
   plugins: z.array(z.string()).default([]),
+  installedPlugins: z.array(z.string()).default([]), // plugins clawset actually installed (vs pre-existing)
   memorySections: z.array(z.string()).default([]),
   files: z.array(z.string()).default([]),
   heartbeatEntries: z.array(z.string()).default([]),
@@ -146,6 +169,8 @@ export const clawsetConfigSchema = z.object({
 export type DressId = z.infer<typeof dressIdSchema>;
 export type AppliedCron = z.infer<typeof appliedCronSchema>;
 export type CronDef = z.infer<typeof cronDefSchema>;
+export type PluginDef = z.infer<typeof pluginDefSchema>;
+export type PluginSecret = z.infer<typeof pluginSecretSchema>;
 export type MemoryContract = z.infer<typeof memoryContractSchema>;
 export type Requires = z.infer<typeof requiresSchema>;
 export type SecretDef = z.infer<typeof secretDefSchema>;

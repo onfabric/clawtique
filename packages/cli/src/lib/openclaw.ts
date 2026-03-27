@@ -145,6 +145,45 @@ export class LocalOpenClawDriver implements OpenClawDriver {
     await writeFile(join(skillDir, 'SKILL.md'), content);
   }
 
+  async pluginInstall(spec: string): Promise<void> {
+    const { exitCode, stderr } = await this.exec(['plugins', 'install', spec]);
+    if (exitCode !== 0) {
+      throw new Error(`Failed to install plugin "${spec}": ${stderr}`);
+    }
+  }
+
+  async pluginUninstall(id: string): Promise<void> {
+    const { exitCode, stderr } = await this.exec(['plugins', 'uninstall', id, '--force']);
+    if (exitCode !== 0) {
+      throw new Error(`Failed to uninstall plugin "${id}": ${stderr}`);
+    }
+  }
+
+  async pluginIsInstalled(id: string): Promise<boolean> {
+    const { stdout, exitCode } = await this.exec(['plugins', 'inspect', id, '--json']);
+    if (exitCode !== 0) return false;
+    try {
+      const info = JSON.parse(stdout);
+      return !!info.plugin && !info.error;
+    } catch {
+      return false;
+    }
+  }
+
+  async configSet(key: string, value: string): Promise<void> {
+    const { exitCode, stderr } = await this.exec(['config', 'set', key, value]);
+    if (exitCode !== 0) {
+      throw new Error(`Failed to set config "${key}": ${stderr}`);
+    }
+  }
+
+  async gatewayRestart(): Promise<void> {
+    const { exitCode, stderr } = await this.exec(['gateway', 'restart']);
+    if (exitCode !== 0) {
+      throw new Error(`Failed to restart gateway: ${stderr}`);
+    }
+  }
+
   async configGet(key: string): Promise<unknown> {
     const { stdout, exitCode } = await this.exec(['config', 'get', key]);
     if (exitCode !== 0) return undefined;

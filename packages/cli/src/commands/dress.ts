@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import chalk from 'chalk';
-import { input, number, confirm } from '@inquirer/prompts';
+import { input, number, password, confirm } from '@inquirer/prompts';
 import { Listr } from 'listr2';
 import {
   z,
@@ -16,6 +16,7 @@ import {
   type StateFile,
   type ParamDef,
   type AppliedCron,
+  type PluginDef,
 } from '@clawset/core';
 import { BaseCommand } from '../base.js';
 import { installDress, resolveDress } from '../lib/installer.js';
@@ -147,6 +148,17 @@ export default class Dress extends BaseCommand {
 
     // Show what will happen
     this.log(chalk.bold('Changes:'));
+    if (diff.pluginsToAdd.length > 0) {
+      for (const p of diff.pluginsToAdd) {
+        const secretCount = Object.keys(p.secrets).length;
+        const configCount = Object.keys(p.config).length;
+        const meta = [
+          secretCount > 0 ? `${secretCount} secret(s)` : '',
+          configCount > 0 ? `${configCount} config value(s)` : '',
+        ].filter(Boolean).join(', ');
+        this.log(`  ${chalk.green('+')} plugin: ${p.id} ${chalk.dim(`(${p.spec})`)}${meta ? ` ${chalk.dim(`[${meta}]`)}` : ''}`);
+      }
+    }
     if (diff.skillsToAdd.length > 0) {
       for (const s of diff.skillsToAdd) {
         const source = bundledSkills.has(s) ? 'bundled' : 'ClawHub';
@@ -194,6 +206,9 @@ export default class Dress extends BaseCommand {
       );
     }
 
+    // Collect plugin secrets before locking
+    const pluginSecrets = await this.collectPluginSecrets(diff.pluginsToAdd, flags);
+
     // Lock and apply
     await this.stateManager.lock();
     const snapshot = await this.gitManager.snapshot();
@@ -202,8 +217,43 @@ export default class Dress extends BaseCommand {
       const appliedCrons: AppliedCron[] = [];
       const appliedFiles: string[] = [];
       const installedSkills: string[] = [];
+      const installedPlugins: string[] = [];
 
       const tasks = new Listr([
+        {
+          title: 'Installing plugins',
+          skip: () => diff.pluginsToAdd.length === 0,
+          task: async () => {
+            for (const plugin of diff.pluginsToAdd) {
+              const alreadyInstalled = await this.openclawDriver.pluginIsInstalled(plugin.id);
+              if (alreadyInstalled) {
+                this.warn(`Plugin "${plugin.id}" already installed — skipping install`);
+              } else {
+                await this.openclawDriver.pluginInstall(plugin.spec);
+                installedPlugins.push(plugin.id);
+              }
+
+              // Set static config values
+              for (const [key, value] of Object.entries(plugin.config)) {
+                await this.openclawDriver.configSet(
+                  `plugins.entries.${plugin.id}.config.${key}`,
+                  String(value),
+                );
+              }
+
+              // Set secret values
+              const secrets = pluginSecrets.get(plugin.id);
+              if (secrets) {
+                for (const [key, value] of Object.entries(secrets)) {
+                  await this.openclawDriver.configSet(
+                    `plugins.entries.${plugin.id}.config.${key}`,
+                    value,
+                  );
+                }
+              }
+            }
+          },
+        },
         {
           title: 'Installing skills',
           skip: () => resolved.requires.skills.length === 0,
@@ -273,6 +323,13 @@ export default class Dress extends BaseCommand {
           },
         },
         {
+          title: 'Restarting gateway',
+          skip: () => diff.pluginsToAdd.length === 0,
+          task: async () => {
+            await this.openclawDriver.gatewayRestart();
+          },
+        },
+        {
           title: 'Saving state',
           task: async () => {
             const entry: DressEntry = {
@@ -284,7 +341,8 @@ export default class Dress extends BaseCommand {
                 crons: appliedCrons,
                 skills: [...resolved.requires.skills],
                 installedSkills,
-                plugins: [...resolved.requires.plugins],
+                plugins: resolved.requires.plugins.map((p) => p.id),
+                installedPlugins,
                 memorySections: [...resolved.memory.dailySections],
                 files: appliedFiles,
                 heartbeatEntries: [...resolved.heartbeat],
@@ -395,6 +453,35 @@ export default class Dress extends BaseCommand {
     return params;
   }
 
+  private async collectPluginSecrets(
+    plugins: PluginDef[],
+    flags: { yes?: boolean },
+  ): Promise<Map<string, Record<string, string>>> {
+    const result = new Map<string, Record<string, string>>();
+    for (const plugin of plugins) {
+      const secretEntries = Object.entries(plugin.secrets);
+      if (secretEntries.length === 0) continue;
+
+      this.log(chalk.bold(`\nPlugin "${plugin.id}" requires secrets:\n`));
+      const secrets: Record<string, string> = {};
+
+      for (const [key, def] of secretEntries) {
+        const urlHint = def.url ? ` ${chalk.dim(`(${def.url})`)}` : '';
+        const value = await password({
+          message: `${def.description}${urlHint}`,
+          mask: '*',
+        });
+        if (!value) {
+          this.error(`Secret "${key}" for plugin "${plugin.id}" is required.`);
+        }
+        secrets[key] = value;
+      }
+
+      result.set(plugin.id, secrets);
+    }
+    return result;
+  }
+
   /**
    * Reconstruct a ResolvedDress from stored state for merge calculations.
    */
@@ -405,7 +492,7 @@ export default class Dress extends BaseCommand {
       version: entry.version,
       description: '',
       requires: {
-        plugins: entry.applied.plugins,
+        plugins: entry.applied.plugins.map((p) => ({ id: p, spec: p, config: {}, secrets: {} })),
         skills: entry.applied.skills,
         dresses: {},
         optionalDresses: {},

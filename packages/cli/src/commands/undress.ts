@@ -66,12 +66,14 @@ export default class Undress extends BaseCommand {
     const othersNeed = this.collectOthersNeeds(state, args.id);
 
     const cronsToRemove = entry.applied.crons;
-    const pluginsToRemove = entry.applied.plugins.filter((p) => !othersNeed.plugins.has(p));
+    // Only remove plugins that clawset actually installed (not pre-existing ones)
+    const installedPluginSet = new Set(entry.applied.installedPlugins ?? []);
+    const pluginsToRemove = entry.applied.plugins.filter((p) => installedPluginSet.has(p) && !othersNeed.plugins.has(p));
+    const pluginsRetained = entry.applied.plugins.filter((p) => !installedPluginSet.has(p) || othersNeed.plugins.has(p));
     // Only remove skills that clawset actually installed (not pre-existing ones)
-    const installed = new Set(entry.applied.installedSkills);
-    const skillsToRemove = entry.applied.skills.filter((s) => installed.has(s) && !othersNeed.skills.has(s));
-    const skillsRetained = entry.applied.skills.filter((s) => !installed.has(s) || othersNeed.skills.has(s));
-    const pluginsRetained = entry.applied.plugins.filter((p) => othersNeed.plugins.has(p));
+    const installedSkillSet = new Set(entry.applied.installedSkills);
+    const skillsToRemove = entry.applied.skills.filter((s) => installedSkillSet.has(s) && !othersNeed.skills.has(s));
+    const skillsRetained = entry.applied.skills.filter((s) => !installedSkillSet.has(s) || othersNeed.skills.has(s));
 
     // Show what will happen
     this.log(chalk.bold(`\nUndressing "${args.id}":\n`));
@@ -83,14 +85,15 @@ export default class Undress extends BaseCommand {
       this.log(`  ${chalk.red('-')} skill: ${s}`);
     }
     for (const s of skillsRetained) {
-      const reason = !installed.has(s) ? 'not installed by clawset' : 'used by another dress';
+      const reason = !installedSkillSet.has(s) ? 'not installed by clawset' : 'used by another dress';
       this.log(`  ${chalk.dim('~')} skill: ${s} ${chalk.dim(`(retained — ${reason})`)}`);
     }
     for (const p of pluginsToRemove) {
       this.log(`  ${chalk.red('-')} plugin: ${p}`);
     }
     for (const p of pluginsRetained) {
-      this.log(`  ${chalk.dim('~')} plugin: ${p} ${chalk.dim('(retained — used by another dress)')}`);
+      const reason = !installedPluginSet.has(p) ? 'not installed by clawset' : 'used by another dress';
+      this.log(`  ${chalk.dim('~')} plugin: ${p} ${chalk.dim(`(retained — ${reason})`)}`);
     }
     if (entry.applied.heartbeatEntries.length > 0) {
       this.log(`  ${chalk.red('-')} heartbeat: ${entry.applied.heartbeatEntries.length} rule(s)`);
@@ -147,6 +150,19 @@ export default class Undress extends BaseCommand {
           },
         },
         {
+          title: 'Removing plugins',
+          skip: () => pluginsToRemove.length === 0,
+          task: async () => {
+            for (const plugin of pluginsToRemove) {
+              try {
+                await this.openclawDriver.pluginUninstall(plugin);
+              } catch {
+                // Plugin may have been manually removed
+              }
+            }
+          },
+        },
+        {
           title: 'Removing skills',
           skip: () => skillsToRemove.length === 0,
           task: async () => {
@@ -191,6 +207,13 @@ export default class Undress extends BaseCommand {
                 if (items.length === 0) await rm(dressDir, { recursive: true });
               } catch { /* ignore */ }
             }
+          },
+        },
+        {
+          title: 'Restarting gateway',
+          skip: () => pluginsToRemove.length === 0,
+          task: async () => {
+            await this.openclawDriver.gatewayRestart();
           },
         },
         {

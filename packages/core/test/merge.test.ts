@@ -70,11 +70,11 @@ describe('mergeDresses', () => {
     const dresses = new Map<string, ResolvedDress>();
     dresses.set('a', makeDress({
       id: 'a',
-      requires: { plugins: ['telegram'], skills: ['oura'], dresses: {}, optionalDresses: {} },
+      requires: { plugins: [{ id: 'telegram', spec: 'telegram', config: {}, secrets: {} }], skills: ['oura'], dresses: {}, optionalDresses: {} },
     }));
     dresses.set('b', makeDress({
       id: 'b',
-      requires: { plugins: ['telegram'], skills: ['reading-list'], dresses: {}, optionalDresses: {} },
+      requires: { plugins: [{ id: 'telegram', spec: 'telegram', config: {}, secrets: {} }], skills: ['reading-list'], dresses: {}, optionalDresses: {} },
     }));
 
     const { state, conflicts } = mergeDresses(dresses);
@@ -114,7 +114,7 @@ describe('diffState', () => {
     const current = { crons: new Set<string>(), plugins: new Set<string>(), skills: new Set<string>() };
     const desired: DesiredState = {
       crons: new Map([['fitness:workout', { id: 'workout', name: 'Workout', schedule: '0 8 * * *', skill: 'workout-planner', dressId: 'fitness' }]]),
-      plugins: new Set(),
+      plugins: new Map(),
       skills: new Set(['workout-planner']),
       memorySections: new Map(),
       heartbeatEntries: new Map(),
@@ -136,7 +136,7 @@ describe('diffState', () => {
     };
     const desired: DesiredState = {
       crons: new Map(),
-      plugins: new Set(),
+      plugins: new Map(),
       skills: new Set(),
       memorySections: new Map(),
       heartbeatEntries: new Map(),

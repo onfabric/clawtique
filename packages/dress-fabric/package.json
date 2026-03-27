@@ -1,0 +1,29 @@
+{
+  "name": "@clawset/dress-fabric",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Portable AI memory powered by Fabric",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "files": ["dist", "skills"],
+  "keywords": ["clawset", "clawset-dress", "fabric", "memory"],
+  "clawset": {
+    "type": "dress",
+    "openclaw": ">=2026.3"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "dependencies": {
+    "@clawset/core": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}

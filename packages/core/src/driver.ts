@@ -18,8 +18,17 @@ export interface OpenClawDriver {
   skillRemove(name: string): Promise<void>;
   skillCopyBundled(name: string, content: string): Promise<void>;
 
-  // Config reading
+  // Plugin management
+  pluginInstall(spec: string): Promise<void>;
+  pluginUninstall(id: string): Promise<void>;
+  pluginIsInstalled(id: string): Promise<boolean>;
+
+  // Config management
   configGet(key: string): Promise<unknown>;
+  configSet(key: string, value: string): Promise<void>;
+
+  // Gateway
+  gatewayRestart(): Promise<void>;
 
   // Health checks
   health(): Promise<{ ok: boolean; message: string }>;

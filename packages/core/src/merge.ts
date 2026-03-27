@@ -1,4 +1,4 @@
-import type { ResolvedDress, CronDef } from './schema.js';
+import type { ResolvedDress, CronDef, PluginDef } from './schema.js';
 import { DependencyGraph } from './graph.js';
 
 // ---------------------------------------------------------------------------
@@ -17,7 +17,7 @@ export interface MergeConflict {
 // ---------------------------------------------------------------------------
 
 export interface DesiredState {
-  plugins: Set<string>;
+  plugins: Map<string, PluginDef>;
   skills: Set<string>;
   crons: Map<string, CronDef & { dressId: string }>;
   memorySections: Map<string, string>; // section name → dress id
@@ -35,7 +35,7 @@ export function mergeDresses(
   const conflicts: MergeConflict[] = [];
 
   const state: DesiredState = {
-    plugins: new Set(),
+    plugins: new Map(),
     skills: new Set(),
     crons: new Map(),
     memorySections: new Map(),
@@ -60,9 +60,11 @@ export function mergeDresses(
     const dress = dresses.get(dressId);
     if (!dress) continue;
 
-    // Plugins — set union, no conflicts possible
+    // Plugins — keyed by id, first definition wins
     for (const plugin of dress.requires.plugins) {
-      state.plugins.add(plugin);
+      if (!state.plugins.has(plugin.id)) {
+        state.plugins.set(plugin.id, plugin);
+      }
     }
 
     // Skills — set union, no conflicts possible
@@ -142,7 +144,7 @@ export function mergeDresses(
 export interface StateDiff {
   cronsToAdd: Array<CronDef & { dressId: string }>;
   cronsToRemove: string[];
-  pluginsToAdd: string[];
+  pluginsToAdd: PluginDef[];
   pluginsToRemove: string[];
   skillsToAdd: string[];
   skillsToRemove: string[];
@@ -157,7 +159,7 @@ export function diffState(
   desired: DesiredState,
 ): StateDiff {
   const desiredCronIds = new Set(desired.crons.keys());
-  const desiredPlugins = desired.plugins;
+  const desiredPluginIds = new Set(desired.plugins.keys());
   const desiredSkills = desired.skills;
 
   return {
@@ -165,8 +167,8 @@ export function diffState(
       .filter(([id]) => !current.crons.has(id))
       .map(([, cron]) => cron),
     cronsToRemove: [...current.crons].filter((id) => !desiredCronIds.has(id)),
-    pluginsToAdd: [...desiredPlugins].filter((p) => !current.plugins.has(p)),
-    pluginsToRemove: [...current.plugins].filter((p) => !desiredPlugins.has(p)),
+    pluginsToAdd: [...desired.plugins.values()].filter((p) => !current.plugins.has(p.id)),
+    pluginsToRemove: [...current.plugins].filter((p) => !desiredPluginIds.has(p)),
     skillsToAdd: [...desiredSkills].filter((s) => !current.skills.has(s)),
     skillsToRemove: [...current.skills].filter((s) => !desiredSkills.has(s)),
   };

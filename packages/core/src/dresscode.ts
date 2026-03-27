@@ -65,7 +65,7 @@ export function generateDresscode(dress: ResolvedDress): string {
     lines.push('## Plugins');
     lines.push('');
     for (const plugin of dress.requires.plugins) {
-      lines.push(`- ${plugin}`);
+      lines.push(`- **${plugin.id}** (\`${plugin.spec}\`)`);
     }
     lines.push('');
   }
