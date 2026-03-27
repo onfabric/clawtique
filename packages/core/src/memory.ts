@@ -55,6 +55,20 @@ export function stripMarkers(dressId: string, fileContent: string): string {
 }
 
 /**
+ * Remove a dress-owned section entirely — markers AND content.
+ * Used for heartbeat rules and other config that should disappear on undress.
+ */
+export function removeSection(dressId: string, fileContent: string): string {
+  return fileContent
+    .replace(
+      new RegExp(`\\n*${escapeRegex(START_TAG(dressId))}\\n[\\s\\S]*?${escapeRegex(END_TAG(dressId))}\\n?`, 'g'),
+      '',
+    )
+    .replace(/\n{3,}/g, '\n\n')
+    .trimEnd() + '\n';
+}
+
+/**
  * List all dress IDs that have markers in a memory file.
  */
 export function findDressMarkers(fileContent: string): string[] {

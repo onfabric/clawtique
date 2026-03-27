@@ -1,16 +1,16 @@
 import { Args, Flags } from '@oclif/core';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import chalk from 'chalk';
-import { input, number, confirm, checkbox } from '@inquirer/prompts';
+import { input, number, confirm } from '@inquirer/prompts';
 import { Listr } from 'listr2';
 import {
   z,
   mergeDresses,
   diffState,
-  buildMemoryScaffold,
   generateDresscode,
+  wrapSection,
   type ResolvedDress,
   type DressEntry,
   type StateFile,
@@ -242,9 +242,23 @@ export default class Dress extends BaseCommand {
           },
         },
         {
+          title: 'Writing heartbeat rules',
+          skip: () => resolved.heartbeat.length === 0,
+          task: async () => {
+            await this.appendHeartbeatRules(dressId, resolved.heartbeat);
+          },
+        },
+        {
           title: 'Updating DRESSES.md',
           task: async () => {
             await this.updateDressesIndex(state, dressId, resolved);
+          },
+        },
+        {
+          title: 'Injecting DRESSES.md into AGENTS.md',
+          skip: () => this.agentsHasClawsetHook(),
+          task: async () => {
+            await this.injectAgentsHook();
           },
         },
         {
@@ -423,5 +437,61 @@ export default class Dress extends BaseCommand {
     lines.push(`DRESSCODE: ~/.openclaw/dresses/${newDressId}/DRESSCODE.md\n`);
 
     await writeFile(this.openclawPaths.dressesIndex, lines.join('\n'));
+  }
+
+  private async appendHeartbeatRules(dressId: string, rules: string[]): Promise<void> {
+    const heartbeatPath = this.openclawPaths.heartbeat;
+    let content = '';
+    if (existsSync(heartbeatPath)) {
+      content = await readFile(heartbeatPath, 'utf-8');
+    }
+
+    // Don't duplicate if already present
+    if (content.includes(`clawset:${dressId}:start`)) return;
+
+    const rulesBlock = rules.map((r) => `- ${r}`).join('\n');
+    const section = `\n## ${dressId}\n${rulesBlock}\n`;
+    const wrapped = wrapSection(dressId, section);
+
+    content = content.trimEnd() + '\n\n' + wrapped + '\n';
+    await writeFile(heartbeatPath, content);
+  }
+
+  private agentsHasClawsetHook(): boolean {
+    const agentsPath = join(this.openclawPaths.root, 'workspace', 'AGENTS.md');
+    if (!existsSync(agentsPath)) return false;
+    const content = readFileSync(agentsPath, 'utf-8');
+    return content.includes('DRESSES.md');
+  }
+
+  private async injectAgentsHook(): Promise<void> {
+    const agentsPath = join(this.openclawPaths.root, 'workspace', 'AGENTS.md');
+    if (!existsSync(agentsPath)) return;
+
+    let content = await readFile(agentsPath, 'utf-8');
+    if (content.includes('DRESSES.md')) return;
+
+    // Insert after the Session Startup numbered list
+    const hook = '\n5. If `DRESSES.md` exists in the openclaw root, read it — it lists active dress configurations and where to find their DRESSCODEs.\n';
+
+    // Try to insert after line 4 ("If in MAIN SESSION...")
+    const mainSessionLine = '4. **If in MAIN SESSION**';
+    const idx = content.indexOf(mainSessionLine);
+    if (idx !== -1) {
+      const lineEnd = content.indexOf('\n', idx);
+      if (lineEnd !== -1) {
+        content = content.slice(0, lineEnd + 1) + hook + content.slice(lineEnd + 1);
+      }
+    } else {
+      // Fallback: append after "## Session Startup" section
+      const sectionIdx = content.indexOf('## Session Startup');
+      if (sectionIdx !== -1) {
+        const nextSection = content.indexOf('\n## ', sectionIdx + 1);
+        const insertAt = nextSection !== -1 ? nextSection : content.length;
+        content = content.slice(0, insertAt) + hook + '\n' + content.slice(insertAt);
+      }
+    }
+
+    await writeFile(agentsPath, content);
   }
 }

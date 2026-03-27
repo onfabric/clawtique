@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { confirm } from '@inquirer/prompts';
 import chalk from 'chalk';
 import { Listr } from 'listr2';
-import { stripMarkers, type StateFile } from '@clawset/core';
+import { stripMarkers, removeSection, type StateFile } from '@clawset/core';
 import { BaseCommand } from '../base.js';
 
 export default class Undress extends BaseCommand {
@@ -89,6 +89,9 @@ export default class Undress extends BaseCommand {
     for (const p of pluginsRetained) {
       this.log(`  ${chalk.dim('~')} plugin: ${p} ${chalk.dim('(retained — used by another dress)')}`);
     }
+    if (entry.applied.heartbeatEntries.length > 0) {
+      this.log(`  ${chalk.red('-')} heartbeat: ${entry.applied.heartbeatEntries.length} rule(s)`);
+    }
     if (entry.applied.memorySections.length > 0) {
       for (const s of entry.applied.memorySections) {
         this.log(`  ${chalk.dim('~')} memory section "${s}" ${chalk.dim('(content preserved, markers removed)')}`);
@@ -158,6 +161,13 @@ export default class Undress extends BaseCommand {
           skip: () => entry.applied.memorySections.length === 0,
           task: async () => {
             await this.stripMemoryMarkers(args.id);
+          },
+        },
+        {
+          title: 'Stripping heartbeat rules',
+          skip: () => entry.applied.heartbeatEntries.length === 0,
+          task: async () => {
+            await this.stripHeartbeatRules(args.id);
           },
         },
         {
@@ -246,6 +256,15 @@ export default class Undress extends BaseCommand {
         await writeFile(filePath, cleaned);
       }
     }
+  }
+
+  private async stripHeartbeatRules(dressId: string): Promise<void> {
+    const heartbeatPath = this.openclawPaths.heartbeat;
+    if (!existsSync(heartbeatPath)) return;
+    const content = await readFile(heartbeatPath, 'utf-8');
+    if (!content.includes(`clawset:${dressId}`)) return;
+    const cleaned = removeSection(dressId, content);
+    await writeFile(heartbeatPath, cleaned);
   }
 
   private async rebuildDressesIndex(state: StateFile, excludeId: string): Promise<void> {

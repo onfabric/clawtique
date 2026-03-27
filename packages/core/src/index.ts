@@ -51,6 +51,7 @@ export {
   wrapSection,
   extractSections,
   stripMarkers,
+  removeSection,
   findDressMarkers,
   buildMemoryScaffold,
 } from './memory.js';
