@@ -146,18 +146,30 @@ export default class Dress extends BaseCommand {
     // Determine which skills are bundled vs need ClawHub install
     const clawHubSkills = resolved.requires.skills.filter((s) => !bundledSkills.has(s));
 
+    // Check which plugins actually need installing (skip pre-existing ones)
+    const pluginsToInstall: PluginDef[] = [];
+    const pluginsPreExisting: PluginDef[] = [];
+    for (const plugin of diff.pluginsToAdd) {
+      if (await this.openclawDriver.pluginIsInstalled(plugin.id)) {
+        pluginsPreExisting.push(plugin);
+      } else {
+        pluginsToInstall.push(plugin);
+      }
+    }
+
     // Show what will happen
     this.log(chalk.bold('Changes:'));
-    if (diff.pluginsToAdd.length > 0) {
-      for (const p of diff.pluginsToAdd) {
-        const secretCount = Object.keys(p.secrets).length;
-        const configCount = Object.keys(p.config).length;
-        const meta = [
-          secretCount > 0 ? `${secretCount} secret(s)` : '',
-          configCount > 0 ? `${configCount} config value(s)` : '',
-        ].filter(Boolean).join(', ');
-        this.log(`  ${chalk.green('+')} plugin: ${p.id} ${chalk.dim(`(${p.spec})`)}${meta ? ` ${chalk.dim(`[${meta}]`)}` : ''}`);
-      }
+    for (const p of pluginsToInstall) {
+      const secretCount = Object.keys(p.secrets).length;
+      const configCount = Object.keys(p.config).length;
+      const meta = [
+        secretCount > 0 ? `${secretCount} secret(s)` : '',
+        configCount > 0 ? `${configCount} config value(s)` : '',
+      ].filter(Boolean).join(', ');
+      this.log(`  ${chalk.green('+')} plugin: ${p.id} ${chalk.dim(`(${p.spec})`)}${meta ? ` ${chalk.dim(`[${meta}]`)}` : ''}`);
+    }
+    for (const p of pluginsPreExisting) {
+      this.log(`  ${chalk.dim('~')} plugin: ${p.id} ${chalk.dim('(already installed — skipping)')}`);
     }
     if (diff.skillsToAdd.length > 0) {
       for (const s of diff.skillsToAdd) {
@@ -204,16 +216,6 @@ export default class Dress extends BaseCommand {
         `  ${health.message || 'Could not connect to openclaw CLI.'}\n\n` +
         `Make sure openclaw is installed and accessible, then try again.`,
       );
-    }
-
-    // Check which plugins actually need installing (skip pre-existing ones)
-    const pluginsToInstall: PluginDef[] = [];
-    for (const plugin of diff.pluginsToAdd) {
-      if (await this.openclawDriver.pluginIsInstalled(plugin.id)) {
-        this.log(`  ${chalk.dim('~')} plugin: ${plugin.id} ${chalk.dim('(already installed — skipping config)')}`);
-      } else {
-        pluginsToInstall.push(plugin);
-      }
     }
 
     // Collect plugin secrets only for plugins we're actually installing
