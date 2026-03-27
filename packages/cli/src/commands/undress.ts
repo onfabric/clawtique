@@ -67,8 +67,10 @@ export default class Undress extends BaseCommand {
 
     const cronsToRemove = entry.applied.crons;
     const pluginsToRemove = entry.applied.plugins.filter((p) => !othersNeed.plugins.has(p));
-    const skillsToRemove = entry.applied.skills.filter((s) => !othersNeed.skills.has(s));
-    const skillsRetained = entry.applied.skills.filter((s) => othersNeed.skills.has(s));
+    // Only remove skills that clawset actually installed (not pre-existing ones)
+    const installed = new Set(entry.applied.installedSkills);
+    const skillsToRemove = entry.applied.skills.filter((s) => installed.has(s) && !othersNeed.skills.has(s));
+    const skillsRetained = entry.applied.skills.filter((s) => !installed.has(s) || othersNeed.skills.has(s));
     const pluginsRetained = entry.applied.plugins.filter((p) => othersNeed.plugins.has(p));
 
     // Show what will happen
@@ -81,7 +83,8 @@ export default class Undress extends BaseCommand {
       this.log(`  ${chalk.red('-')} skill: ${s}`);
     }
     for (const s of skillsRetained) {
-      this.log(`  ${chalk.dim('~')} skill: ${s} ${chalk.dim('(retained — used by another dress)')}`);
+      const reason = !installed.has(s) ? 'not installed by clawset' : 'used by another dress';
+      this.log(`  ${chalk.dim('~')} skill: ${s} ${chalk.dim(`(retained — ${reason})`)}`);
     }
     for (const p of pluginsToRemove) {
       this.log(`  ${chalk.red('-')} plugin: ${p}`);

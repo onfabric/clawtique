@@ -108,6 +108,7 @@ export const appliedCronSchema = z.object({
 export const appliedStateSchema = z.object({
   crons: z.array(appliedCronSchema).default([]),
   skills: z.array(z.string()).default([]),
+  installedSkills: z.array(z.string()).default([]), // skills clawset actually installed (vs pre-existing)
   plugins: z.array(z.string()).default([]),
   memorySections: z.array(z.string()).default([]),
   files: z.array(z.string()).default([]),

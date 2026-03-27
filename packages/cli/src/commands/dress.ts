@@ -201,6 +201,7 @@ export default class Dress extends BaseCommand {
     try {
       const appliedCrons: AppliedCron[] = [];
       const appliedFiles: string[] = [];
+      const installedSkills: string[] = [];
 
       const tasks = new Listr([
         {
@@ -209,11 +210,21 @@ export default class Dress extends BaseCommand {
           task: async () => {
             // Copy bundled skills
             for (const [skillName, content] of bundledSkills) {
-              await this.openclawDriver.skillCopyBundled(skillName, content);
+              if (await this.openclawDriver.skillExists(skillName)) {
+                this.warn(`Skill "${skillName}" already exists — skipping (won't overwrite)`);
+              } else {
+                await this.openclawDriver.skillCopyBundled(skillName, content);
+                installedSkills.push(skillName);
+              }
             }
             // Install ClawHub skills
             for (const slug of clawHubSkills) {
-              await this.openclawDriver.skillInstall(slug);
+              if (await this.openclawDriver.skillExists(slug)) {
+                this.warn(`Skill "${slug}" already exists — skipping (won't overwrite)`);
+              } else {
+                await this.openclawDriver.skillInstall(slug);
+                installedSkills.push(slug);
+              }
             }
           },
         },
@@ -272,6 +283,7 @@ export default class Dress extends BaseCommand {
               applied: {
                 crons: appliedCrons,
                 skills: [...resolved.requires.skills],
+                installedSkills,
                 plugins: [...resolved.requires.plugins],
                 memorySections: [...resolved.memory.dailySections],
                 files: appliedFiles,

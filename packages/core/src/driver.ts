@@ -13,6 +13,7 @@ export interface OpenClawDriver {
   cronRemove(cron: AppliedCron): Promise<void>;
 
   // Skill management
+  skillExists(name: string): Promise<boolean>;
   skillInstall(slug: string): Promise<void>;
   skillRemove(name: string): Promise<void>;
   skillCopyBundled(name: string, content: string): Promise<void>;
