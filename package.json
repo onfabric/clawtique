@@ -8,7 +8,8 @@
   "workspaces": ["packages/*"],
   "scripts": {
     "build": "bun run --filter './packages/core' build && bun run --filter './packages/*' build",
-    "clean": "rm -rf packages/*/dist packages/*/*.tsbuildinfo"
+    "clean": "rm -rf packages/*/dist packages/*/*.tsbuildinfo",
+    "test": "bun test packages/"
   },
   "devDependencies": {
     "typescript": "^5.7.0"

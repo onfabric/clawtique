@@ -1,25 +1,31 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import type { OpenClawDriver, CronListEntry, CronDef, AppliedCron } from '@clawset/core';
+import type { ExecFn } from './exec-recorder.js';
 
 const execFileAsync = promisify(execFile);
 
 /**
  * Local OpenClaw driver — shells out to the `openclaw` CLI.
+ *
+ * Accepts an optional `execFn` override for testing (record/replay).
  */
 export class LocalOpenClawDriver implements OpenClawDriver {
   private bin: string;
   private env: Record<string, string>;
+  private execOverride?: ExecFn;
 
-  constructor(options?: { bin?: string; pathPrefix?: string }) {
+  constructor(options?: { bin?: string; pathPrefix?: string; execFn?: ExecFn }) {
     this.bin = options?.bin ?? 'openclaw';
     this.env = {};
+    this.execOverride = options?.execFn;
     if (options?.pathPrefix) {
       this.env['PATH'] = `${options.pathPrefix}:${process.env['PATH'] ?? ''}`;
     }
   }
 
   async exec(args: string[]): Promise<{ stdout: string; stderr: string; exitCode: number }> {
+    if (this.execOverride) return this.execOverride(args);
     try {
       const { stdout, stderr } = await execFileAsync(this.bin, args, {
         env: { ...process.env, ...this.env },
