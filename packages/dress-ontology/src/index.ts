@@ -8,6 +8,7 @@ export default defineDress({
 
   requires: {
     skills: ['ontology'],
+    underwear: ['waclaw'],
     // No files.skills entry → installed from ClawHub via `openclaw skills install ontology`
   },
 
@@ -17,6 +18,7 @@ export default defineDress({
       name: 'Daily knowledge graph update',
       schedule: '0 23 * * *',
       skill: 'ontology',
+      channel: 'waclaw',
     },
   ],
 

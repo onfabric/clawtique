@@ -81,7 +81,7 @@ export class LocalOpenClawDriver implements OpenClawDriver {
       '--message', message,
       '--session', 'isolated',
       '--announce',
-      '--channel', 'last',
+      '--channel', cron.channel ?? 'last',
       '--thinking', 'low',
       '--timeout-seconds', '240',
       '--exact',

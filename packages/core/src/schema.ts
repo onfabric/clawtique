@@ -48,6 +48,7 @@ export const cronDefSchema = z.object({
   name: z.string(),
   schedule: z.string(), // validated after param resolution
   skill: z.string(), // skill this cron triggers — must exist in requires.skills
+  channel: z.string().optional(), // channel to announce on — must match an active underwear ID; omit for 'last'
 });
 
 // ---------------------------------------------------------------------------
@@ -151,6 +152,7 @@ export const appliedCronSchema = z.object({
   qualifiedId: z.string(),
   displayName: z.string(),
   skill: z.string().default(''),
+  channel: z.string().optional(),
 });
 
 export const appliedStateSchema = z.object({

@@ -43,6 +43,7 @@ export default defineDress({
       },
     ],
     skills: ['sleep-report'],
+    underwear: ['waclaw'],
   },
 
   crons: (p) => [
@@ -51,6 +52,7 @@ export default defineDress({
       name: 'Morning sleep report',
       schedule: cronFromTime(p.morningTime, p.activeDays, p.timezone),
       skill: 'sleep-report',
+      channel: 'waclaw',
     },
   ],
 

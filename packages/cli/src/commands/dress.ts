@@ -135,6 +135,25 @@ export default class Dress extends BaseCommand {
       }
     }
 
+    // Validate cron channels — must be 'last' or declared in requires.underwear with active underwear
+    const declaredUnderwear = new Set(resolved.requires.underwear ?? []);
+    for (const cron of resolved.crons) {
+      const ch = cron.channel ?? 'last';
+      if (ch === 'last') continue;
+      if (!declaredUnderwear.has(ch)) {
+        this.error(
+          `Cron "${cron.id}" uses channel "${ch}" but it is not declared in requires.underwear.\n` +
+          `Add "${ch}" to the dress's requires.underwear array.`,
+        );
+      }
+      if (!state.underwear?.[ch]) {
+        this.error(
+          `Cron "${cron.id}" uses channel "${ch}" but that underwear is not active.\n` +
+          `Run "clawset underwear add ${ch}" first.`,
+        );
+      }
+    }
+
     // Merge all dresses including the new one
     const allDresses = new Map<string, ResolvedDress>();
     for (const [id, entry] of Object.entries(state.dresses)) {
@@ -395,6 +414,7 @@ export default class Dress extends BaseCommand {
                 qualifiedId: `${cron.dressId}:${cron.id}`,
                 displayName: `[${cron.dressId}] ${cron.name}`,
                 skill: cron.skill,
+                channel: cron.channel,
               });
             }
           },

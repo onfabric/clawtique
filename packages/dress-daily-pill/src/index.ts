@@ -21,6 +21,7 @@ export default defineDress({
 
   requires: {
     skills: ['daily-pill'],
+    underwear: ['waclaw'],
   },
 
   crons: (p) => [
@@ -29,6 +30,7 @@ export default defineDress({
       name: 'Daily pill',
       schedule: cronFromTime(p.pillTime, ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'], p.timezone),
       skill: 'daily-pill',
+      channel: 'waclaw',
     },
   ],
 

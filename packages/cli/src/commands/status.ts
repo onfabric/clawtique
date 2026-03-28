@@ -64,7 +64,10 @@ export default class Status extends BaseCommand {
       );
 
       if (entry.applied.crons.length > 0) {
-        this.log(`    crons: ${entry.applied.crons.map((c) => c.displayName).join(', ')}`);
+        this.log(`    crons: ${entry.applied.crons.map((c) => {
+          const ch = c.channel ? ` ${chalk.dim(`→ ${c.channel}`)}` : '';
+          return c.displayName + ch;
+        }).join(', ')}`);
       }
       if (entry.applied.skills.length > 0) {
         this.log(`    skills: ${entry.applied.skills.join(', ')}`);

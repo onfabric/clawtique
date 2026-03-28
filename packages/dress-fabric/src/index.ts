@@ -18,6 +18,7 @@ export default defineDress({
       },
     ],
     skills: ['user-check-in', 'deep-user-profile'],
+    underwear: ['waclaw'],
   },
 
   crons: [
@@ -26,6 +27,7 @@ export default defineDress({
       name: 'Daily user profile update',
       schedule: '0 0 * * *',
       skill: 'deep-user-profile',
+      channel: 'waclaw',
     },
   ],
 

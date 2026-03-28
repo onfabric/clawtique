@@ -31,6 +31,7 @@ export default defineDress({
 
   requires: {
     skills: ['workout-schedule', 'workout-feedback'],
+    underwear: ['waclaw'],
   },
 
   secrets: {},
@@ -41,6 +42,7 @@ export default defineDress({
       name: 'Daily workout schedule',
       schedule: cronFromTime(p.workoutTime, p.workDays, p.timezone),
       skill: 'workout-schedule',
+      channel: 'waclaw',
     },
     {
       id: 'workout-feedback',
@@ -51,6 +53,7 @@ export default defineDress({
         p.timezone,
       ),
       skill: 'workout-feedback',
+      channel: 'waclaw',
     },
   ],
 
@@ -60,7 +63,7 @@ export default defineDress({
   },
 
   heartbeat: [
-    'If it is near workout time and no schedule has been sent today, nudge via Telegram.',
+    'If it is near workout time and no schedule has been sent today, nudge via WhatsApp.',
   ],
 
   files: {

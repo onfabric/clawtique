@@ -31,6 +31,7 @@ export default defineDress({
 
   requires: {
     skills: ['tech-bro-digest'],
+    underwear: ['waclaw'],
   },
 
   crons: (p) => [
@@ -39,6 +40,7 @@ export default defineDress({
       name: `${p.topics} digest`,
       schedule: cronFromTime(p.digestTime, ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'], p.timezone),
       skill: 'tech-bro-digest',
+      channel: 'waclaw',
     },
   ],
 

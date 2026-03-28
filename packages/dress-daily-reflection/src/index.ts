@@ -26,6 +26,7 @@ export default defineDress({
 
   requires: {
     skills: ['daily-reflection'],
+    underwear: ['waclaw'],
   },
 
   crons: (p) => [
@@ -34,6 +35,7 @@ export default defineDress({
       name: 'Daily reflection and tomorrow bullets',
       schedule: cronFromTime(p.reflectionTime, p.activeDays, p.timezone),
       skill: 'daily-reflection',
+      channel: 'waclaw',
     },
   ],
 
