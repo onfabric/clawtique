@@ -2,7 +2,7 @@ import { describe, test, expect } from 'bun:test';
 import { LocalOpenClawDriver } from '../src/lib/openclaw.js';
 import { loadRecording, replayExec } from '../src/lib/exec-recorder.js';
 import { join } from 'node:path';
-import type { AppliedCron } from '@clawset/core';
+import type { AppliedCron } from '@clawtique/core';
 
 const FIXTURE = join(import.meta.dir, 'fixtures', 'dress-undress-session.json');
 

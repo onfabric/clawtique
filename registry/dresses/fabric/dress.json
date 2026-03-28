@@ -5,7 +5,7 @@
   "description": "Portable AI memory powered by Fabric — proactive check-ins, memory retrieval, and user profiling.",
 
   "requires": {
-    "underwear": ["waclaw"],
+    "lingerie": ["waclaw"],
     "plugins": [
       {
         "id": "openclaw-fabric",

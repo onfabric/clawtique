@@ -1,13 +1,13 @@
 {
   "version": 1,
-  "generatedAt": "2026-03-28T17:42:48.195Z",
+  "generatedAt": "2026-03-28T18:10:15.602Z",
   "dresses": {
     "sleeping-coach": {
       "name": "Sleeping Coach",
       "version": "1.0.0",
       "description": "Sleep coaching powered by Oura Ring — morning reports and evening wind-down advice.",
       "requires": {
-        "underwear": [
+        "lingerie": [
           "waclaw"
         ]
       },
@@ -18,7 +18,7 @@
       "version": "2.0.0",
       "description": "Sends workout schedule and collects post-training feedback.",
       "requires": {
-        "underwear": [
+        "lingerie": [
           "waclaw"
         ]
       },
@@ -29,7 +29,7 @@
       "version": "1.0.0",
       "description": "Maintains a personal knowledge graph via the ontology skill from ClawHub.",
       "requires": {
-        "underwear": [
+        "lingerie": [
           "waclaw"
         ]
       },
@@ -40,7 +40,7 @@
       "version": "1.0.0",
       "description": "End-of-day reflection — capture what mattered and set tomorrow's intentions.",
       "requires": {
-        "underwear": [
+        "lingerie": [
           "waclaw"
         ]
       },
@@ -51,7 +51,7 @@
       "version": "1.0.0",
       "description": "Daily digest of tech news from configurable sources and topics.",
       "requires": {
-        "underwear": [
+        "lingerie": [
           "waclaw"
         ]
       },
@@ -62,7 +62,7 @@
       "version": "1.0.0",
       "description": "One bookmark a day — the most relevant link for what you're working on right now.",
       "requires": {
-        "underwear": [
+        "lingerie": [
           "waclaw"
         ]
       },
@@ -73,19 +73,19 @@
       "version": "1.0.0",
       "description": "Portable AI memory powered by Fabric — proactive check-ins, memory retrieval, and user profiling.",
       "requires": {
-        "underwear": [
+        "lingerie": [
           "waclaw"
         ]
       },
       "path": "dresses/fabric"
     }
   },
-  "underwear": {
+  "lingerie": {
     "waclaw": {
       "name": "WhatsApp (waclaw)",
       "version": "1.0.0",
       "description": "WhatsApp channel plugin via waclaw proxy — shared across dresses that need WhatsApp messaging.",
-      "path": "underwear/waclaw"
+      "path": "lingerie/waclaw"
     }
   }
 }

@@ -48,7 +48,7 @@ export const cronDefSchema = z.object({
   name: z.string(),
   schedule: z.string(), // validated after param resolution
   skill: z.string(), // skill this cron triggers — must exist in requires.skills
-  channel: z.string().optional(), // channel to announce on — must match an active underwear ID; omit for 'last'
+  channel: z.string().optional(), // channel to announce on — must match an active lingerie ID; omit for 'last'
 });
 
 // ---------------------------------------------------------------------------
@@ -80,7 +80,7 @@ export const requiresSchema = z.object({
   skills: z.array(z.string()).default([]),
   dresses: z.record(z.string(), z.string()).default({}),
   optionalDresses: z.record(z.string(), z.string()).default({}),
-  underwear: z.array(z.string()).default([]),
+  lingerie: z.array(z.string()).default([]),
 });
 
 // ---------------------------------------------------------------------------
@@ -121,10 +121,10 @@ export const resolvedDressSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Underwear — shared plugin infrastructure
+// Lingerie — shared plugin infrastructure
 // ---------------------------------------------------------------------------
 
-export const underwearDefSchema = z.object({
+export const lingerieDefSchema = z.object({
   id: dressIdSchema,
   name: z.string().min(1),
   version: semverSchema,
@@ -132,20 +132,20 @@ export const underwearDefSchema = z.object({
   plugins: z.array(pluginDefSchema).default([]),
 });
 
-export const underwearAppliedSchema = z.object({
+export const lingerieAppliedSchema = z.object({
   plugins: z.array(z.string()).default([]),
   installedPlugins: z.array(z.string()).default([]),
 });
 
-export const underwearEntrySchema = z.object({
+export const lingerieEntrySchema = z.object({
   package: z.string(),
   version: semverSchema,
   installedAt: z.string().datetime(),
-  applied: underwearAppliedSchema,
+  applied: lingerieAppliedSchema,
 });
 
 // ---------------------------------------------------------------------------
-// State file — tracks what clawset has applied
+// State file — tracks what clawtique has applied
 // ---------------------------------------------------------------------------
 
 export const appliedCronSchema = z.object({
@@ -165,7 +165,7 @@ export const appliedStateSchema = z.object({
   files: z.array(z.string()).default([]),
   heartbeatEntries: z.array(z.string()).default([]),
   workspaceFiles: z.array(z.string()).default([]),
-  underwear: z.array(z.string()).default([]), // underwear IDs this dress depends on
+  lingerie: z.array(z.string()).default([]), // lingerie IDs this dress depends on
 });
 
 export const dressEntrySchema = z.object({
@@ -181,14 +181,14 @@ export const stateFileSchema = z.object({
   serial: z.number().int().nonnegative(),
   openclawDir: z.string(),
   dresses: z.record(dressIdSchema, dressEntrySchema).default({}),
-  underwear: z.record(dressIdSchema, underwearEntrySchema).default({}),
+  lingerie: z.record(dressIdSchema, lingerieEntrySchema).default({}),
 });
 
 // ---------------------------------------------------------------------------
-// Clawset config (lives at ~/.clawset/config.json)
+// Clawtique config (lives at ~/.clawtique/config.json)
 // ---------------------------------------------------------------------------
 
-export const clawsetConfigSchema = z.object({
+export const clawtiqueConfigSchema = z.object({
   openclawDir: z.string(),
   timezone: z.string().default('UTC'),
   version: z.string().default('0.1.0'),
@@ -210,9 +210,9 @@ export type DressFiles = z.infer<typeof dressFilesSchema>;
 export type ResolvedDress = z.infer<typeof resolvedDressSchema>;
 export type AppliedState = z.infer<typeof appliedStateSchema>;
 export type DressEntry = z.infer<typeof dressEntrySchema>;
-export type UnderwearDef = z.infer<typeof underwearDefSchema>;
-export type UnderwearApplied = z.infer<typeof underwearAppliedSchema>;
-export type UnderwearEntry = z.infer<typeof underwearEntrySchema>;
+export type LingerieDef = z.infer<typeof lingerieDefSchema>;
+export type LingerieApplied = z.infer<typeof lingerieAppliedSchema>;
+export type LingerieEntry = z.infer<typeof lingerieEntrySchema>;
 export type StateFile = z.infer<typeof stateFileSchema>;
-export type ClawsetConfig = z.infer<typeof clawsetConfigSchema>;
+export type ClawtiqueConfig = z.infer<typeof clawtiqueConfigSchema>;
 

@@ -1,5 +1,5 @@
-import { cronFromTime } from '@clawset/core';
-import type { DressJson, CronJson, SkillParam, Weekday } from '@clawset/core';
+import { cronFromTime } from '@clawtique/core';
+import type { DressJson, CronJson, SkillParam, Weekday } from '@clawtique/core';
 
 // ---------------------------------------------------------------------------
 // Types for user choices collected during prompting
@@ -30,7 +30,7 @@ export interface CompiledDress {
   bundledSkills: Map<string, string>;    // skillId → compiled .md content
   clawHubSkills: string[];               // skill IDs to install from ClawHub
   plugins: DressJson['requires']['plugins'];
-  underwear: string[];
+  lingerie: string[];
 
   memory: DressJson['memory'];
   heartbeat: string[];
@@ -114,8 +114,8 @@ export function validateDress(
     if (!dress.skills[cron.skill]) {
       errors.push(`Cron "${cron.id}" references skill "${cron.skill}" which is not in skills`);
     }
-    if (cron.channel && cron.channel !== 'last' && !dress.requires.underwear.includes(cron.channel)) {
-      errors.push(`Cron "${cron.id}" uses channel "${cron.channel}" not in requires.underwear`);
+    if (cron.channel && cron.channel !== 'last' && !dress.requires.lingerie.includes(cron.channel)) {
+      errors.push(`Cron "${cron.id}" uses channel "${cron.channel}" not in requires.lingerie`);
     }
   }
 
@@ -222,7 +222,7 @@ export function compileDress(input: CompileInput): CompiledDress {
     bundledSkills,
     clawHubSkills,
     plugins: dress.requires.plugins,
-    underwear: dress.requires.underwear,
+    lingerie: dress.requires.lingerie,
 
     memory: dress.memory,
     heartbeat: dress.heartbeat,

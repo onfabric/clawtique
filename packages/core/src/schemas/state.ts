@@ -32,7 +32,7 @@ const cronScheduleSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Applied state — tracks everything clawset has applied for a dress
+// Applied state — tracks everything clawtique has applied for a dress
 // ---------------------------------------------------------------------------
 
 export const appliedStateSchema = z.object({
@@ -45,7 +45,7 @@ export const appliedStateSchema = z.object({
   files: z.array(z.string()).default([]),
   heartbeatEntries: z.array(z.string()).default([]),
   workspaceFiles: z.array(z.string()).default([]),
-  underwear: z.array(z.string()).default([]),
+  lingerie: z.array(z.string()).default([]),
 });
 
 // ---------------------------------------------------------------------------
@@ -64,22 +64,22 @@ export const dressEntrySchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Underwear entry — installed underwear in state
+// Lingerie entry — installed lingerie in state
 // ---------------------------------------------------------------------------
 
-export const underwearAppliedSchema = z.object({
+export const lingerieAppliedSchema = z.object({
   plugins: z.array(z.string()).default([]),
   installedPlugins: z.array(z.string()).default([]),
 });
 
-export const underwearEntrySchema = z.object({
+export const lingerieEntrySchema = z.object({
   registryVersion: z.string(),
   installedAt: z.string().datetime(),
-  applied: underwearAppliedSchema,
+  applied: lingerieAppliedSchema,
 });
 
 // ---------------------------------------------------------------------------
-// State file — the full ~/.clawset/state.json
+// State file — the full ~/.clawtique/state.json
 // ---------------------------------------------------------------------------
 
 export const stateFileSchema = z.object({
@@ -87,14 +87,14 @@ export const stateFileSchema = z.object({
   serial: z.number().int().nonnegative(),
   openclawDir: z.string(),
   dresses: z.record(dressIdSchema, dressEntrySchema).default({}),
-  underwear: z.record(dressIdSchema, underwearEntrySchema).default({}),
+  lingerie: z.record(dressIdSchema, lingerieEntrySchema).default({}),
 });
 
 // ---------------------------------------------------------------------------
-// Config file — ~/.clawset/config.json
+// Config file — ~/.clawtique/config.json
 // ---------------------------------------------------------------------------
 
-export const clawsetConfigSchema = z.object({
+export const clawtiqueConfigSchema = z.object({
   openclawDir: z.string(),
   timezone: z.string().default('UTC'),
   version: z.string().default('0.1.0'),
@@ -107,7 +107,7 @@ export const clawsetConfigSchema = z.object({
 export type AppliedCron = z.infer<typeof appliedCronSchema>;
 export type AppliedState = z.infer<typeof appliedStateSchema>;
 export type DressEntry = z.infer<typeof dressEntrySchema>;
-export type UnderwearApplied = z.infer<typeof underwearAppliedSchema>;
-export type UnderwearEntry = z.infer<typeof underwearEntrySchema>;
+export type LingerieApplied = z.infer<typeof lingerieAppliedSchema>;
+export type LingerieEntry = z.infer<typeof lingerieEntrySchema>;
 export type StateFile = z.infer<typeof stateFileSchema>;
-export type ClawsetConfig = z.infer<typeof clawsetConfigSchema>;
+export type ClawtiqueConfig = z.infer<typeof clawtiqueConfigSchema>;

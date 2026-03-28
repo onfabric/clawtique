@@ -3,19 +3,19 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   dressJsonSchema,
-  underwearJsonSchema,
+  lingerieJsonSchema,
   registryIndexSchema,
   type DressJson,
-  type UnderwearJson,
+  type LingerieJson,
   type RegistryIndex,
-} from '@clawset/core';
+} from '@clawtique/core';
 
 // ---------------------------------------------------------------------------
 // RegistryProvider interface
 // ---------------------------------------------------------------------------
 
 export interface RegistryProvider {
-  /** Fetch the registry index (list of available dresses + underwear). */
+  /** Fetch the registry index (list of available dresses + lingerie). */
   getIndex(): Promise<RegistryIndex>;
 
   /** Fetch a dress definition by ID. */
@@ -24,8 +24,8 @@ export interface RegistryProvider {
   /** Read a bundled skill .md file for a dress. */
   getSkillContent(dressId: string, skillName: string): Promise<string>;
 
-  /** Fetch an underwear definition by ID. */
-  getUnderwearJson(underwearId: string): Promise<UnderwearJson>;
+  /** Fetch an lingerie definition by ID. */
+  getLingerieJson(lingerieId: string): Promise<LingerieJson>;
 
   /** List all available skill .md files for a dress. */
   listSkills(dressId: string): Promise<string[]>;
@@ -55,10 +55,10 @@ export class LocalRegistryProvider implements RegistryProvider {
     return readFile(skillPath, 'utf-8');
   }
 
-  async getUnderwearJson(underwearId: string): Promise<UnderwearJson> {
-    const uwPath = join(this.registryDir, 'underwear', underwearId, 'underwear.json');
+  async getLingerieJson(lingerieId: string): Promise<LingerieJson> {
+    const uwPath = join(this.registryDir, 'lingerie', lingerieId, 'lingerie.json');
     const raw = JSON.parse(await readFile(uwPath, 'utf-8'));
-    return underwearJsonSchema.parse(raw);
+    return lingerieJsonSchema.parse(raw);
   }
 
   async listSkills(dressId: string): Promise<string[]> {
@@ -98,6 +98,6 @@ export function createRegistryProvider(cwd: string): RegistryProvider {
   // TODO: return GitHubRegistryProvider when remote support is added
   throw new Error(
     'No local registry found. Remote registry support is not yet available.\n' +
-    'Run this command from the clawset repository root, or install dresses from a local registry.',
+    'Run this command from the clawtique repository root, or install dresses from a local registry.',
   );
 }

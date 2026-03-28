@@ -6,10 +6,10 @@ import { BaseCommand } from '../base.js';
 export default class Rollback extends BaseCommand {
   static summary = 'Undo the last dress/undress operation';
 
-  static description = `Rolls back the last clawset operation by reverting the git state.
-Note: This only reverts the clawset state file. You may need to manually
+  static description = `Rolls back the last clawtique operation by reverting the git state.
+Note: This only reverts the clawtique state file. You may need to manually
 verify that OpenClaw crons/config match the rolled-back state.
-Run "clawset doctor" after rollback to verify.`;
+Run "clawtique doctor" after rollback to verify.`;
 
   static examples = [
     '<%= config.bin %> rollback',
@@ -57,15 +57,15 @@ Run "clawset doctor" after rollback to verify.`;
 
       // The full hash isn't stored in our log helper, but we can use HEAD~1
       const { simpleGit: sg } = await import('simple-git');
-      const git = sg(this.clawsetPaths.root);
+      const git = sg(this.clawtiquePaths.root);
       const parentHash = await git.revparse(['HEAD~1']);
 
       await git.reset(['--hard', parentHash]);
 
       this.log(`${chalk.green('✓')} Rolled back to previous state.`);
       this.log(chalk.yellow('\nImportant: OpenClaw config may be out of sync.'));
-      this.log(`Run ${chalk.cyan('clawset doctor')} to verify.`);
-      this.log(`Run ${chalk.cyan('clawset diff')} to see what clawset expects.\n`);
+      this.log(`Run ${chalk.cyan('clawtique doctor')} to verify.`);
+      this.log(`Run ${chalk.cyan('clawtique diff')} to see what clawtique expects.\n`);
     } finally {
       await this.stateManager.unlock();
     }

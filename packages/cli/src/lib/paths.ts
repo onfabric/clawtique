@@ -2,31 +2,31 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 
 /**
- * All clawset paths derived from the base directory.
+ * All clawtique paths derived from the base directory.
  */
-export interface ClawsetPaths {
-  /** Root clawset directory: ~/.clawset */
+export interface ClawtiquePaths {
+  /** Root clawtique directory: ~/.clawtique */
   root: string;
-  /** Config file: ~/.clawset/config.json */
+  /** Config file: ~/.clawtique/config.json */
   config: string;
-  /** State file: ~/.clawset/state.json */
+  /** State file: ~/.clawtique/state.json */
   state: string;
-  /** Installed dresses directory: ~/.clawset/dresses/ */
+  /** Installed dresses directory: ~/.clawtique/dresses/ */
   dresses: string;
-  /** Lock file: ~/.clawset/clawset.lock */
+  /** Lock file: ~/.clawtique/clawtique.lock */
   lock: string;
-  /** Cache directory for fetched registry data: ~/.clawset/cache/ */
+  /** Cache directory for fetched registry data: ~/.clawtique/cache/ */
   cache: string;
 }
 
-export function getClawsetPaths(root?: string): ClawsetPaths {
-  const base = root ?? join(homedir(), '.clawset');
+export function getClawtiquePaths(root?: string): ClawtiquePaths {
+  const base = root ?? join(homedir(), '.clawtique');
   return {
     root: base,
     config: join(base, 'config.json'),
     state: join(base, 'state.json'),
     dresses: join(base, 'dresses'),
-    lock: join(base, 'clawset.lock'),
+    lock: join(base, 'clawtique.lock'),
     cache: join(base, 'cache'),
   };
 }

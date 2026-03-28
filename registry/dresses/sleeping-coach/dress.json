@@ -5,7 +5,7 @@
   "description": "Sleep coaching powered by Oura Ring — morning reports and evening wind-down advice.",
 
   "requires": {
-    "underwear": ["waclaw"],
+    "lingerie": ["waclaw"],
     "plugins": [
       {
         "id": "ouraclaw",
@@ -18,7 +18,7 @@
           "After entering your Client ID and Secret, open this URL in your local browser (replace <client_id> with your actual Client ID):",
           "  https://cloud.ouraring.com/oauth/authorize?client_id=<client_id>&redirect_uri=http%3A%2F%2Flocalhost%3A9876%2Fcallback&response_type=code&scope=email+personal+daily+heartrate+tag+workout+session+spo2+ring_configuration+stress+heart_health",
           "You can also find the authorization URL in the Oura developer portal under your application settings.",
-          "When asked \"Enable scheduled morning & evening summaries?\", answer No — clawset manages crons instead.",
+          "When asked \"Enable scheduled morning & evening summaries?\", answer No — clawtique manages crons instead.",
           "For more info see: https://github.com/rickybloomfield/OuraClaw"
         ]
       }

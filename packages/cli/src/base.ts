@@ -1,43 +1,43 @@
 import { Command, Flags } from '@oclif/core';
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
-import type { ClawsetConfig } from '@clawset/core';
-import { clawsetConfigSchema } from '@clawset/core';
-import { getClawsetPaths, getOpenClawPaths, type ClawsetPaths, type OpenClawPaths } from './lib/paths.js';
+import type { ClawtiqueConfig } from '@clawtique/core';
+import { clawtiqueConfigSchema } from '@clawtique/core';
+import { getClawtiquePaths, getOpenClawPaths, type ClawtiquePaths, type OpenClawPaths } from './lib/paths.js';
 import { StateManager } from './lib/state.js';
 import { GitManager } from './lib/git.js';
 import { LocalOpenClawDriver } from './lib/openclaw.js';
 
 export abstract class BaseCommand extends Command {
   static baseFlags = {
-    'clawset-dir': Flags.string({
-      description: 'Path to clawset directory',
-      env: 'CLAWSET_DIR',
+    'clawtique-dir': Flags.string({
+      description: 'Path to clawtique directory',
+      env: 'CLAWTIQUE_DIR',
     }),
   };
 
-  protected clawsetPaths!: ClawsetPaths;
+  protected clawtiquePaths!: ClawtiquePaths;
   protected openclawPaths!: OpenClawPaths;
   protected stateManager!: StateManager;
   protected gitManager!: GitManager;
   protected openclawDriver!: LocalOpenClawDriver;
 
-  protected async loadConfig(): Promise<ClawsetConfig> {
+  protected async loadConfig(): Promise<ClawtiqueConfig> {
     const { flags } = await this.parse(this.constructor as typeof BaseCommand);
-    this.clawsetPaths = getClawsetPaths(flags['clawset-dir']);
+    this.clawtiquePaths = getClawtiquePaths(flags['clawtique-dir']);
 
-    if (!existsSync(this.clawsetPaths.config)) {
+    if (!existsSync(this.clawtiquePaths.config)) {
       this.error(
-        'Clawset is not initialized.\nRun: clawset init',
+        'Clawtique is not initialized.\nRun: clawtique init',
       );
     }
 
-    const raw = await readFile(this.clawsetPaths.config, 'utf-8');
-    const config = clawsetConfigSchema.parse(JSON.parse(raw));
+    const raw = await readFile(this.clawtiquePaths.config, 'utf-8');
+    const config = clawtiqueConfigSchema.parse(JSON.parse(raw));
 
     this.openclawPaths = getOpenClawPaths(config.openclawDir);
-    this.stateManager = new StateManager(this.clawsetPaths);
-    this.gitManager = new GitManager(this.clawsetPaths.root);
+    this.stateManager = new StateManager(this.clawtiquePaths);
+    this.gitManager = new GitManager(this.clawtiquePaths.root);
     this.openclawDriver = new LocalOpenClawDriver({
       skillsDir: this.openclawPaths.skills,
     });

@@ -2,14 +2,14 @@
  * Memory utilities for managing dress-owned sections in daily memory files.
  *
  * Sections are delimited by HTML comments invisible to the agent:
- *   <!-- clawset:<dress-id>:start -->
+ *   <!-- clawtique:<dress-id>:start -->
  *   ## Section Name
  *   Content...
- *   <!-- clawset:<dress-id>:end -->
+ *   <!-- clawtique:<dress-id>:end -->
  */
 
-const START_TAG = (dressId: string) => `<!-- clawset:${dressId}:start -->`;
-const END_TAG = (dressId: string) => `<!-- clawset:${dressId}:end -->`;
+const START_TAG = (dressId: string) => `<!-- clawtique:${dressId}:start -->`;
+const END_TAG = (dressId: string) => `<!-- clawtique:${dressId}:end -->`;
 
 const SECTION_REGEX = (dressId: string) =>
   new RegExp(
@@ -22,7 +22,7 @@ function escapeRegex(str: string): string {
 }
 
 /**
- * Wrap content in clawset ownership markers.
+ * Wrap content in clawtique ownership markers.
  */
 export function wrapSection(dressId: string, content: string): string {
   return `${START_TAG(dressId)}\n${content}\n${END_TAG(dressId)}`;
@@ -72,7 +72,7 @@ export function removeSection(dressId: string, fileContent: string): string {
  * List all dress IDs that have markers in a memory file.
  */
 export function findDressMarkers(fileContent: string): string[] {
-  const regex = /<!-- clawset:([a-z][a-z0-9-]*):start -->/g;
+  const regex = /<!-- clawtique:([a-z][a-z0-9-]*):start -->/g;
   const ids = new Set<string>();
   let match: RegExpExecArray | null;
   while ((match = regex.exec(fileContent)) !== null) {

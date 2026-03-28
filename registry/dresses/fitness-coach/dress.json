@@ -5,7 +5,7 @@
   "description": "Sends workout schedule and collects post-training feedback.",
 
   "requires": {
-    "underwear": ["waclaw"]
+    "lingerie": ["waclaw"]
   },
 
   "crons": [

@@ -5,7 +5,7 @@
   "description": "End-of-day reflection — capture what mattered and set tomorrow's intentions.",
 
   "requires": {
-    "underwear": ["waclaw"]
+    "lingerie": ["waclaw"]
   },
 
   "crons": [

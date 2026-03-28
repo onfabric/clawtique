@@ -14,8 +14,8 @@ export class GitManager {
   async init(): Promise<void> {
     if (!existsSync(join(this.repoDir, '.git'))) {
       await this.git.init();
-      await this.git.addConfig('user.name', 'clawset');
-      await this.git.addConfig('user.email', 'clawset@local');
+      await this.git.addConfig('user.name', 'clawtique');
+      await this.git.addConfig('user.email', 'clawtique@local');
     }
   }
 

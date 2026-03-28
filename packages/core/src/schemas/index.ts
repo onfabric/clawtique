@@ -23,28 +23,28 @@ export type {
   Weekday,
 } from './dress-json.js';
 
-export { underwearJsonSchema } from './underwear-json.js';
-export type { UnderwearJson } from './underwear-json.js';
+export { lingerieJsonSchema } from './lingerie-json.js';
+export type { LingerieJson } from './lingerie-json.js';
 
 export { registryIndexSchema } from './registry.js';
-export type { RegistryIndex, RegistryDressEntry, RegistryUnderwearEntry } from './registry.js';
+export type { RegistryIndex, RegistryDressEntry, RegistryLingerieEntry } from './registry.js';
 
 export {
   appliedCronSchema,
   appliedStateSchema,
   dressEntrySchema,
-  underwearAppliedSchema,
-  underwearEntrySchema,
+  lingerieAppliedSchema,
+  lingerieEntrySchema,
   stateFileSchema,
-  clawsetConfigSchema,
+  clawtiqueConfigSchema,
 } from './state.js';
 
 export type {
   AppliedCron,
   AppliedState,
   DressEntry,
-  UnderwearApplied,
-  UnderwearEntry,
+  LingerieApplied,
+  LingerieEntry,
   StateFile,
-  ClawsetConfig,
+  ClawtiqueConfig,
 } from './state.js';

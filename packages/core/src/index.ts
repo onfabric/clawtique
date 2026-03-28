@@ -14,11 +14,11 @@ export {
   appliedCronSchema,
   appliedStateSchema,
   dressEntrySchema,
-  underwearDefSchema,
-  underwearAppliedSchema,
-  underwearEntrySchema,
+  lingerieDefSchema,
+  lingerieAppliedSchema,
+  lingerieEntrySchema,
   stateFileSchema,
-  clawsetConfigSchema,
+  clawtiqueConfigSchema,
 } from './schema.js';
 
 export type {
@@ -33,11 +33,11 @@ export type {
   AppliedCron,
   AppliedState,
   DressEntry,
-  UnderwearDef,
-  UnderwearApplied,
-  UnderwearEntry,
+  LingerieDef,
+  LingerieApplied,
+  LingerieEntry,
   StateFile,
-  ClawsetConfig,
+  ClawtiqueConfig,
 } from './schema.js';
 
 // DRESSCODE generation
@@ -72,7 +72,7 @@ export {
   cronJsonSchema,
   skillJsonSchema,
   skillParamSchema,
-  underwearJsonSchema,
+  lingerieJsonSchema,
   registryIndexSchema,
 } from './schemas/index.js';
 
@@ -82,12 +82,12 @@ export type {
   SkillJson,
   SkillParam,
   Weekday,
-  UnderwearJson,
+  LingerieJson,
   RegistryIndex,
   RegistryDressEntry,
-  RegistryUnderwearEntry,
+  RegistryLingerieEntry,
   DressEntry as DressEntryV2,
-  UnderwearEntry as UnderwearEntryV2,
+  LingerieEntry as LingerieEntryV2,
   StateFile as StateFileV2,
-  ClawsetConfig as ClawsetConfigV2,
+  ClawtiqueConfig as ClawtiqueConfigV2,
 } from './schemas/index.js';

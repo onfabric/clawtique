@@ -5,7 +5,7 @@
   "description": "Maintains a personal knowledge graph via the ontology skill from ClawHub.",
 
   "requires": {
-    "underwear": ["waclaw"]
+    "lingerie": ["waclaw"]
   },
 
   "crons": [

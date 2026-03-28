@@ -1,25 +1,25 @@
-# openclawset
+# openclawtique
 
 A wardrobe for your OpenClaw. Dress it up, take it off, no mess left behind.
 
 OpenClaw is powerful out of the box, but setting it up for a specific goal — say, a fitness routine — means installing skills, wiring up cron jobs, defining memory sections, writing prompts, and making sure they all talk to each other. Then doing it again for the next thing. And hoping nothing breaks when you remove one.
 
-openclawset fixes this. You define a **dress** — a typed bundle of everything OpenClaw needs to do a job — and the CLI handles the rest. Install it, customize it, remove it cleanly. Your data stays, the config goes.
+openclawtique fixes this. You define a **dress** — a typed bundle of everything OpenClaw needs to do a job — and the CLI handles the rest. Install it, customize it, remove it cleanly. Your data stays, the config goes.
 
 ## Quick start
 
 ```bash
-# Point openclawset at your OpenClaw instance
-clawset init --openclaw-dir ~/.openclaw
+# Point openclawtique at your OpenClaw instance
+clawtique init --openclaw-dir ~/.openclaw
 
 # Try on a dress
-clawset dress ./packages/dress-fitness-coach
+clawtique dress ./packages/dress-fitness-coach
 
 # See what's active
-clawset status
+clawtique status
 
 # Not working out? Take it off
-clawset undress fitness-coach
+clawtique undress fitness-coach
 ```
 
 ## What's a dress?
@@ -40,7 +40,7 @@ A dress can be as simple as a single cron job or as elaborate as a full coaching
 Every dress can define parameters that you set when you put it on:
 
 ```
-$ clawset dress @clawset/fitness-coach
+$ clawtique dress @clawtique/fitness-coach
 
   Fitness Coach v1.0.0
 
@@ -55,32 +55,32 @@ $ clawset dress @clawset/fitness-coach
   + guide: ~/.openclaw/dresses/fitness-coach/GUIDE.md
 ```
 
-Cron schedules are computed from your answers — times are converted to UTC automatically. Change your mind later with `clawset params`:
+Cron schedules are computed from your answers — times are converted to UTC automatically. Change your mind later with `clawtique params`:
 
 ```bash
-clawset params fitness-coach --set workoutTime=18:00 --set workDays=mon,wed,fri,sat
+clawtique params fitness-coach --set workoutTime=18:00 --set workDays=mon,wed,fri,sat
 ```
 
 ## The rules
 
 **Config is removed. Data stays.**
 
-When you undress, openclawset removes the cron jobs, skills, and guide files it installed. But everything OpenClaw wrote while wearing that dress — daily memory entries, logs, generated files — stays untouched. You never lose work.
+When you undress, openclawtique removes the cron jobs, skills, and guide files it installed. But everything OpenClaw wrote while wearing that dress — daily memory entries, logs, generated files — stays untouched. You never lose work.
 
 **Dresses compose safely.**
 
-Two dresses that both need the same plugin? It's installed once, removed only when nothing needs it anymore. Two dresses that claim the same memory section? openclawset refuses and tells you exactly what conflicts.
+Two dresses that both need the same plugin? It's installed once, removed only when nothing needs it anymore. Two dresses that claim the same memory section? openclawtique refuses and tells you exactly what conflicts.
 
 **Everything is tracked.**
 
-Every dress and undress is a git commit with a conventional message. `clawset log` shows the full history. `clawset rollback` undoes the last operation. You always know what changed and when.
+Every dress and undress is a git commit with a conventional message. `clawtique log` shows the full history. `clawtique rollback` undoes the last operation. You always know what changed and when.
 
 ## Writing a dress
 
 A dress is a TypeScript file that calls `defineDress()`:
 
 ```typescript
-import { defineDress, z, cronFromTime, addHours } from '@clawset/core'
+import { defineDress, z, cronFromTime, addHours } from '@clawtique/core'
 
 export default defineDress({
   id: 'fitness-coach',
@@ -150,27 +150,27 @@ Everything is typed. If a cron references a param that doesn't exist, TypeScript
 
 | Command | What it does |
 |---------|-------------|
-| `clawset init` | Point at an OpenClaw directory, set up state tracking |
-| `clawset dress <path>` | Install and activate a dress, prompting for params |
-| `clawset undress <id>` | Remove a dress's config, keep its data |
-| `clawset status` | List active dresses with their components and params |
-| `clawset params <id>` | View or update a dress's params |
-| `clawset diff` | Show everything openclawset has applied |
-| `clawset doctor` | Health check — verify all files, crons, and connections |
-| `clawset log` | Git history of all dress/undress operations |
-| `clawset rollback` | Undo the last operation |
+| `clawtique init` | Point at an OpenClaw directory, set up state tracking |
+| `clawtique dress <path>` | Install and activate a dress, prompting for params |
+| `clawtique undress <id>` | Remove a dress's config, keep its data |
+| `clawtique status` | List active dresses with their components and params |
+| `clawtique params <id>` | View or update a dress's params |
+| `clawtique diff` | Show everything openclawtique has applied |
+| `clawtique doctor` | Health check — verify all files, crons, and connections |
+| `clawtique log` | Git history of all dress/undress operations |
+| `clawtique rollback` | Undo the last operation |
 
 All mutating commands support `--dry-run`. All read commands support `--json`.
 
 ## How it works under the hood
 
-openclawset maintains a small git repository at `~/.clawset/` that tracks:
+openclawtique maintains a small git repository at `~/.clawtique/` that tracks:
 
 - Which dresses are active and with what params
 - What was applied to OpenClaw (crons, skills, plugins, memory sections, files)
 - The full history of changes as conventional commits
 
-When you dress or undress, openclawset:
+When you dress or undress, openclawtique:
 
 1. Merges all active dresses into a single desired state
 2. Detects conflicts (duplicate memory sections, missing dependencies)
@@ -183,10 +183,10 @@ Removing a dress recomputes the desired state without it. Shared dependencies (l
 ## Project structure
 
 ```
-openclawset/
+openclawtique/
 ├── packages/
 │   ├── core/                    # Types, schemas, merge logic, utilities
-│   ├── cli/                     # The clawset CLI (oclif)
+│   ├── cli/                     # The clawtique CLI (oclif)
 │   └── dress-fitness-coach/     # Example dress
 ```
 

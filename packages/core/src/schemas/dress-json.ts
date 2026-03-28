@@ -30,7 +30,7 @@ export const pluginDefSchema = z.object({
 // ---------------------------------------------------------------------------
 
 export const requiresSchema = z.object({
-  underwear: z.array(z.string()).default([]),
+  lingerie: z.array(z.string()).default([]),
   plugins: z.array(pluginDefSchema).default([]),
   dresses: z.record(z.string(), z.string()).default({}),
   optionalDresses: z.record(z.string(), z.string()).default({}),

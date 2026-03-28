@@ -1,12 +1,12 @@
 #!/usr/bin/env bun
 /**
- * Validates all dresses and underwear in registry/, then generates registry.json.
+ * Validates all dresses and lingerie in registry/, then generates registry.json.
  *
  * Validation:
- *  - dress.json / underwear.json parse against Zod schemas
+ *  - dress.json / lingerie.json parse against Zod schemas
  *  - param defaults match their declared type (enforced by schema)
  *  - every cron.skill references a key in skills
- *  - every cron.channel is in requires.underwear
+ *  - every cron.channel is in requires.lingerie
  *  - every bundled skill has a .md file
  *  - every {{placeholder}} in a bundled .md has a matching param or is an auto-var (error)
  *  - every declared param appears as {{param}} in the .md (warning)
@@ -15,12 +15,12 @@
 import { readFileSync, readdirSync, existsSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { dressJsonSchema, type DressJson } from '../packages/core/src/schemas/dress-json.js';
-import { underwearJsonSchema } from '../packages/core/src/schemas/underwear-json.js';
+import { lingerieJsonSchema } from '../packages/core/src/schemas/lingerie-json.js';
 import type { RegistryIndex } from '../packages/core/src/schemas/registry.js';
 
 const REGISTRY_DIR = join(import.meta.dir, '..', 'registry');
 const DRESSES_DIR = join(REGISTRY_DIR, 'dresses');
-const UNDERWEAR_DIR = join(REGISTRY_DIR, 'underwear');
+const LINGERIE_DIR = join(REGISTRY_DIR, 'lingerie');
 
 // Auto-vars injected by the CLI — not declared as params
 const AUTO_VARS = new Set([
@@ -94,8 +94,8 @@ for (const dir of dressDirs) {
     if (!dress.skills[cron.skill]) {
       error(`cron "${cron.id}" references skill "${cron.skill}" which is not in skills`);
     }
-    if (cron.channel && cron.channel !== 'last' && !dress.requires.underwear.includes(cron.channel)) {
-      error(`cron "${cron.id}" uses channel "${cron.channel}" not in requires.underwear`);
+    if (cron.channel && cron.channel !== 'last' && !dress.requires.lingerie.includes(cron.channel)) {
+      error(`cron "${cron.id}" uses channel "${cron.channel}" not in requires.lingerie`);
     }
   }
 
@@ -132,27 +132,27 @@ for (const dir of dressDirs) {
     name: dress.name,
     version: dress.version,
     description: dress.description,
-    requires: { underwear: dress.requires.underwear },
+    requires: { lingerie: dress.requires.lingerie },
     path: `dresses/${dir}`,
   };
 }
 
 // ---------------------------------------------------------------------------
-// Validate underwear
+// Validate lingerie
 // ---------------------------------------------------------------------------
 
-const underwearIndex: RegistryIndex['underwear'] = {};
+const lingerieIndex: RegistryIndex['lingerie'] = {};
 
-const uwDirs = existsSync(UNDERWEAR_DIR) ? readdirSync(UNDERWEAR_DIR) : [];
+const uwDirs = existsSync(LINGERIE_DIR) ? readdirSync(LINGERIE_DIR) : [];
 for (const dir of uwDirs) {
-  const uwPath = join(UNDERWEAR_DIR, dir, 'underwear.json');
+  const uwPath = join(LINGERIE_DIR, dir, 'lingerie.json');
   if (!existsSync(uwPath)) continue;
 
-  console.log(`underwear: ${dir}`);
+  console.log(`lingerie: ${dir}`);
 
   try {
     const raw = JSON.parse(readFileSync(uwPath, 'utf-8'));
-    const result = underwearJsonSchema.safeParse(raw);
+    const result = lingerieJsonSchema.safeParse(raw);
     if (!result.success) {
       for (const issue of result.error.issues) {
         error(`${issue.path.join('.')}: ${issue.message}`);
@@ -162,28 +162,28 @@ for (const dir of uwDirs) {
     const uw = result.data;
 
     if (uw.id !== dir) {
-      error(`underwear.id "${uw.id}" does not match directory name "${dir}"`);
+      error(`lingerie.id "${uw.id}" does not match directory name "${dir}"`);
     }
 
-    underwearIndex[uw.id] = {
+    lingerieIndex[uw.id] = {
       name: uw.name,
       version: uw.version,
       description: uw.description,
-      path: `underwear/${dir}`,
+      path: `lingerie/${dir}`,
     };
   } catch (e) {
-    error(`Failed to parse underwear.json: ${e}`);
+    error(`Failed to parse lingerie.json: ${e}`);
   }
 }
 
 // ---------------------------------------------------------------------------
-// Cross-validate: dress underwear refs exist in registry
+// Cross-validate: dress lingerie refs exist in registry
 // ---------------------------------------------------------------------------
 
 for (const [dressId, entry] of Object.entries(dressIndex)) {
-  for (const uwId of entry.requires.underwear) {
-    if (!underwearIndex[uwId]) {
-      error(`dress "${dressId}" requires underwear "${uwId}" which is not in the registry`);
+  for (const uwId of entry.requires.lingerie) {
+    if (!lingerieIndex[uwId]) {
+      error(`dress "${dressId}" requires lingerie "${uwId}" which is not in the registry`);
     }
   }
 }
@@ -201,13 +201,13 @@ const registry: RegistryIndex = {
   version: 1,
   generatedAt: new Date().toISOString(),
   dresses: dressIndex,
-  underwear: underwearIndex,
+  lingerie: lingerieIndex,
 };
 
 const outPath = join(REGISTRY_DIR, 'registry.json');
 writeFileSync(outPath, JSON.stringify(registry, null, 2) + '\n');
 
-console.log(`\n✓ registry.json generated (${Object.keys(dressIndex).length} dresses, ${Object.keys(underwearIndex).length} underwear)`);
+console.log(`\n✓ registry.json generated (${Object.keys(dressIndex).length} dresses, ${Object.keys(lingerieIndex).length} lingerie)`);
 if (warnings > 0) {
   console.warn(`  ${warnings} warning(s)`);
 }

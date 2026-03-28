@@ -28,7 +28,7 @@ export default class Wardrobe extends BaseCommand {
     const state = await this.stateManager.load();
 
     const wornIds = new Set(Object.keys(state.dresses));
-    const wornUnderwear = new Set(Object.keys(state.underwear ?? {}));
+    const wornLingerie = new Set(Object.keys(state.lingerie ?? {}));
 
     if (flags.json) {
       const data = {
@@ -39,10 +39,10 @@ export default class Wardrobe extends BaseCommand {
             ...(wornIds.has(id) ? { installedVersion: state.dresses[id].version } : {}),
           }]),
         ),
-        underwear: Object.fromEntries(
-          Object.entries(index.underwear).map(([id, entry]) => [id, {
+        lingerie: Object.fromEntries(
+          Object.entries(index.lingerie).map(([id, entry]) => [id, {
             ...entry,
-            worn: wornUnderwear.has(id),
+            worn: wornLingerie.has(id),
           }]),
         ),
       };
@@ -66,23 +66,23 @@ export default class Wardrobe extends BaseCommand {
         if (entry.description) {
           this.log(`    ${chalk.dim(entry.description)}`);
         }
-        if (entry.requires.underwear.length > 0) {
-          const uwStatus = entry.requires.underwear.map((uwId) =>
-            wornUnderwear.has(uwId) ? chalk.green(uwId) : chalk.yellow(uwId),
+        if (entry.requires.lingerie.length > 0) {
+          const uwStatus = entry.requires.lingerie.map((uwId) =>
+            wornLingerie.has(uwId) ? chalk.green(uwId) : chalk.yellow(uwId),
           ).join(', ');
           this.log(`    ${chalk.dim('requires:')} ${uwStatus}`);
         }
       }
     }
 
-    // Underwear
-    this.log(chalk.bold('\nUnderwear:\n'));
-    const uwEntries = Object.entries(index.underwear);
+    // Lingerie
+    this.log(chalk.bold('\nLingerie:\n'));
+    const uwEntries = Object.entries(index.lingerie);
     if (uwEntries.length === 0) {
-      this.log('  No underwear in registry.');
+      this.log('  No lingerie in registry.');
     } else {
       for (const [id, entry] of uwEntries) {
-        const worn = wornUnderwear.has(id);
+        const worn = wornLingerie.has(id);
         const icon = worn ? chalk.green('●') : chalk.dim('○');
         const label = worn ? chalk.green(entry.name) : entry.name;
         const status = worn ? chalk.green(' (worn)') : '';

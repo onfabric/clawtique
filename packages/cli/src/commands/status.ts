@@ -27,10 +27,10 @@ export default class Status extends BaseCommand {
       return;
     }
 
-    // Show underwear first
-    const uwEntries = Object.entries(state.underwear ?? {});
+    // Show lingerie first
+    const uwEntries = Object.entries(state.lingerie ?? {});
     if (uwEntries.length > 0) {
-      this.log(`\n${chalk.bold('Underwear')}\n`);
+      this.log(`\n${chalk.bold('Lingerie')}\n`);
       for (const [id, uwEntry] of uwEntries) {
         this.log(
           `  ${chalk.magenta(id)} ${chalk.dim(`v${uwEntry.version}`)} ` +
@@ -44,14 +44,14 @@ export default class Status extends BaseCommand {
     }
 
     if (entries.length === 0 && uwEntries.length === 0) {
-      this.log('\nNo dresses or underwear active.');
-      this.log(`Run ${chalk.cyan('clawset dress <specifier>')} to get started.\n`);
+      this.log('\nNo dresses or lingerie active.');
+      this.log(`Run ${chalk.cyan('clawtique dress <specifier>')} to get started.\n`);
       return;
     }
 
     if (entries.length === 0) {
       this.log('\nNo dresses active.');
-      this.log(`Run ${chalk.cyan('clawset dress <specifier>')} to get started.\n`);
+      this.log(`Run ${chalk.cyan('clawtique dress <specifier>')} to get started.\n`);
       return;
     }
 
@@ -90,7 +90,7 @@ export default class Status extends BaseCommand {
       this.log('');
     }
 
-    const uwCount = uwEntries.length > 0 ? ` | ${uwEntries.length} underwear` : '';
+    const uwCount = uwEntries.length > 0 ? ` | ${uwEntries.length} lingerie` : '';
     this.log(chalk.dim(`  ${entries.length} dress${entries.length === 1 ? '' : 'es'} active${uwCount} | serial: ${state.serial}`));
     this.log('');
   }

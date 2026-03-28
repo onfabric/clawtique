@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { confirm, select } from '@inquirer/prompts';
 import chalk from 'chalk';
 import { Listr } from 'listr2';
-import { stripMarkers, removeSection, type StateFile } from '@clawset/core';
+import { stripMarkers, removeSection, type StateFile } from '@clawtique/core';
 import { BaseCommand } from '../base.js';
 
 export default class Undress extends BaseCommand {
@@ -52,7 +52,7 @@ export default class Undress extends BaseCommand {
     if (!dressId) {
       const activeIds = Object.keys(state.dresses);
       if (activeIds.length === 0) {
-        this.error('No active dresses to remove.\nRun "clawset status" to check.');
+        this.error('No active dresses to remove.\nRun "clawtique status" to check.');
       }
       dressId = await select({
         message: 'Choose a dress to remove',
@@ -66,7 +66,7 @@ export default class Undress extends BaseCommand {
     const entry = this.stateManager.getDressEntry(state, dressId);
 
     if (!entry) {
-      this.error(`Dress "${dressId}" is not active.\nRun "clawset status" to see active dresses.`);
+      this.error(`Dress "${dressId}" is not active.\nRun "clawtique status" to see active dresses.`);
     }
 
     // Check for dependants
@@ -84,11 +84,11 @@ export default class Undress extends BaseCommand {
     const othersNeed = this.collectOthersNeeds(state, dressId);
 
     const cronsToRemove = entry.applied.crons;
-    // Only remove plugins that clawset actually installed (not pre-existing ones)
+    // Only remove plugins that clawtique actually installed (not pre-existing ones)
     const installedPluginSet = new Set(entry.applied.installedPlugins ?? []);
     const pluginsToRemove = entry.applied.plugins.filter((p) => installedPluginSet.has(p) && !othersNeed.plugins.has(p));
     const pluginsRetained = entry.applied.plugins.filter((p) => !installedPluginSet.has(p) || othersNeed.plugins.has(p));
-    // Only remove skills that clawset actually installed (not pre-existing ones)
+    // Only remove skills that clawtique actually installed (not pre-existing ones)
     const installedSkillSet = new Set(entry.applied.installedSkills);
     const skillsToRemove = entry.applied.skills.filter((s) => installedSkillSet.has(s) && !othersNeed.skills.has(s));
     const skillsRetained = entry.applied.skills.filter((s) => !installedSkillSet.has(s) || othersNeed.skills.has(s));
@@ -103,14 +103,14 @@ export default class Undress extends BaseCommand {
       this.log(`  ${chalk.red('-')} skill: ${s}`);
     }
     for (const s of skillsRetained) {
-      const reason = !installedSkillSet.has(s) ? 'not installed by clawset' : 'used by another dress';
+      const reason = !installedSkillSet.has(s) ? 'not installed by clawtique' : 'used by another dress';
       this.log(`  ${chalk.dim('~')} skill: ${s} ${chalk.dim(`(retained — ${reason})`)}`);
     }
     for (const p of pluginsToRemove) {
       this.log(`  ${chalk.red('-')} plugin: ${p}`);
     }
     for (const p of pluginsRetained) {
-      const reason = !installedPluginSet.has(p) ? 'not installed by clawset' : 'used by another dress';
+      const reason = !installedPluginSet.has(p) ? 'not installed by clawtique' : 'used by another dress';
       this.log(`  ${chalk.dim('~')} plugin: ${p} ${chalk.dim(`(retained — ${reason})`)}`);
     }
     if (entry.applied.heartbeatEntries.length > 0) {
@@ -313,8 +313,8 @@ export default class Undress extends BaseCommand {
       for (const p of entry.applied.plugins) plugins.add(p);
       for (const s of entry.applied.skills) skills.add(s);
     }
-    // Underwear-managed plugins are never removed by undress
-    for (const entry of Object.values(state.underwear ?? {})) {
+    // Lingerie-managed plugins are never removed by undress
+    for (const entry of Object.values(state.lingerie ?? {})) {
       for (const p of entry.applied.plugins) plugins.add(p);
     }
     return { plugins, skills };
@@ -327,7 +327,7 @@ export default class Undress extends BaseCommand {
       if (!file.endsWith('.md')) continue;
       const filePath = join(this.openclawPaths.memory, file);
       const content = await readFile(filePath, 'utf-8');
-      if (content.includes(`clawset:${dressId}`)) {
+      if (content.includes(`clawtique:${dressId}`)) {
         const cleaned = stripMarkers(dressId, content);
         await writeFile(filePath, cleaned);
       }
@@ -338,7 +338,7 @@ export default class Undress extends BaseCommand {
     const heartbeatPath = this.openclawPaths.heartbeat;
     if (!existsSync(heartbeatPath)) return;
     const content = await readFile(heartbeatPath, 'utf-8');
-    if (!content.includes(`clawset:${dressId}`)) return;
+    if (!content.includes(`clawtique:${dressId}`)) return;
     const cleaned = removeSection(dressId, content);
     await writeFile(heartbeatPath, cleaned);
   }

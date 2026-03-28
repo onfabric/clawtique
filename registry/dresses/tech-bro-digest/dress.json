@@ -5,7 +5,7 @@
   "description": "Daily digest of tech news from configurable sources and topics.",
 
   "requires": {
-    "underwear": ["waclaw"]
+    "lingerie": ["waclaw"]
   },
 
   "crons": [

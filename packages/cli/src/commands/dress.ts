@@ -16,8 +16,8 @@ import {
   type StateFile,
   type AppliedCron,
   type PluginDef,
-} from '@clawset/core';
-import type { DressJson, Weekday, UnderwearJson, DressEntryV2 } from '@clawset/core';
+} from '@clawtique/core';
+import type { DressJson, Weekday, LingerieJson, DressEntryV2 } from '@clawtique/core';
 import { BaseCommand } from '../base.js';
 import { createRegistryProvider, type RegistryProvider } from '../lib/registry.js';
 import {
@@ -99,7 +99,7 @@ export default class Dress extends BaseCommand {
 
     // Check if already dressed
     if (this.stateManager.isDressed(state, dress.id)) {
-      this.error(`Already dressed in "${dress.id}". Undress first: clawset undress ${dress.id}`);
+      this.error(`Already dressed in "${dress.id}". Undress first: clawtique undress ${dress.id}`);
     }
 
     // Fetch bundled skill contents
@@ -130,18 +130,18 @@ export default class Dress extends BaseCommand {
     // Phase: Dependencies
     // -----------------------------------------------------------------------
 
-    // Check underwear
-    for (const uwId of dress.requires.underwear) {
-      if (!state.underwear?.[uwId]) {
+    // Check lingerie
+    for (const uwId of dress.requires.lingerie) {
+      if (!state.lingerie?.[uwId]) {
         const install = await confirm({
-          message: `Dress "${dress.name}" requires underwear "${uwId}". Install it now?`,
+          message: `Dress "${dress.name}" requires lingerie "${uwId}". Install it now?`,
           default: true,
         });
         if (!install) {
-          this.log('  You wouldn\'t go out without underwear, would you?');
-          this.error(`Missing underwear: "${uwId}". Cannot dress without it.`);
+          this.log('  You wouldn\'t go out without lingerie, would you?');
+          this.error(`Missing lingerie: "${uwId}". Cannot dress without it.`);
         }
-        await this.installUnderwear(registry, uwId, state);
+        await this.installLingerie(registry, uwId, state);
       }
     }
 
@@ -150,7 +150,7 @@ export default class Dress extends BaseCommand {
       if (!this.stateManager.isDressed(state, depId)) {
         this.error(
           `Missing required dress: "${depId}" (${depVersion})\n` +
-          `Install it first: clawset dress ${depId}`,
+          `Install it first: clawtique dress ${depId}`,
         );
       }
     }
@@ -175,9 +175,9 @@ export default class Dress extends BaseCommand {
       });
       timezone = tz;
       // Save timezone to config for future dresses
-      const configData = JSON.parse(await readFile(this.clawsetPaths.config, 'utf-8'));
+      const configData = JSON.parse(await readFile(this.clawtiquePaths.config, 'utf-8'));
       configData.timezone = timezone;
-      await writeFile(this.clawsetPaths.config, JSON.stringify(configData, null, 2) + '\n');
+      await writeFile(this.clawtiquePaths.config, JSON.stringify(configData, null, 2) + '\n');
     }
 
     // Cron schedules
@@ -211,16 +211,16 @@ export default class Dress extends BaseCommand {
         this.error('Must select at least one day.');
       }
 
-      // Channel — auto-select if only one underwear, prompt if multiple
+      // Channel — auto-select if only one lingerie, prompt if multiple
       let channel: string | undefined;
       if (cron.channel) {
         channel = cron.channel;
-      } else if (dress.requires.underwear.length === 1) {
-        channel = dress.requires.underwear[0];
-      } else if (dress.requires.underwear.length > 1) {
+      } else if (dress.requires.lingerie.length === 1) {
+        channel = dress.requires.lingerie[0];
+      } else if (dress.requires.lingerie.length > 1) {
         channel = await select({
           message: `  Channel`,
-          choices: dress.requires.underwear.map((id) => ({ name: id, value: id })),
+          choices: dress.requires.lingerie.map((id) => ({ name: id, value: id })),
         });
       }
 
@@ -552,7 +552,7 @@ export default class Dress extends BaseCommand {
                 files: appliedFiles,
                 heartbeatEntries: [...compiled.heartbeat],
                 workspaceFiles: Object.keys(compiled.workspace),
-                underwear: [...compiled.underwear],
+                lingerie: [...compiled.lingerie],
               },
             };
             state.dresses[dress.id] = entry;
@@ -591,19 +591,19 @@ export default class Dress extends BaseCommand {
   // Helpers
   // -------------------------------------------------------------------------
 
-  private async installUnderwear(
+  private async installLingerie(
     registry: RegistryProvider,
-    underwearId: string,
+    lingerieId: string,
     state: StateFile,
   ): Promise<void> {
-    let uw: UnderwearJson;
+    let uw: LingerieJson;
     try {
-      uw = await registry.getUnderwearJson(underwearId);
+      uw = await registry.getLingerieJson(lingerieId);
     } catch {
-      this.error(`Underwear "${underwearId}" not found in the registry.`);
+      this.error(`Lingerie "${lingerieId}" not found in the registry.`);
     }
 
-    this.log(`\n  Installing underwear: ${chalk.bold(uw.name)}`);
+    this.log(`\n  Installing lingerie: ${chalk.bold(uw.name)}`);
 
     const installedPlugins: string[] = [];
 
@@ -633,7 +633,7 @@ export default class Dress extends BaseCommand {
           child.on('error', reject);
         });
         if (exitCode !== 0) {
-          this.error(`Underwear plugin setup failed (exit code ${exitCode}).`);
+          this.error(`Lingerie plugin setup failed (exit code ${exitCode}).`);
         }
       } else {
         const schema = await this.openclawDriver.pluginConfigSchema(plugin.id);
@@ -671,9 +671,9 @@ export default class Dress extends BaseCommand {
       await restartTask.run();
     }
 
-    // Save underwear to state
-    state.underwear[underwearId] = {
-      package: underwearId,
+    // Save lingerie to state
+    state.lingerie[lingerieId] = {
+      package: lingerieId,
       version: uw.version,
       installedAt: new Date().toISOString(),
       applied: {
@@ -682,7 +682,7 @@ export default class Dress extends BaseCommand {
       },
     };
     await this.stateManager.save(state);
-    this.log(`  ${chalk.green('✓')} Underwear "${uw.name}" installed.\n`);
+    this.log(`  ${chalk.green('✓')} Lingerie "${uw.name}" installed.\n`);
   }
 
   /**
@@ -700,7 +700,7 @@ export default class Dress extends BaseCommand {
         skills: allSkills,
         dresses: {},
         optionalDresses: {},
-        underwear: compiled.underwear,
+        lingerie: compiled.lingerie,
       },
       secrets: compiled.secrets,
       crons: compiled.crons.map((c) => ({
@@ -731,7 +731,7 @@ export default class Dress extends BaseCommand {
         skills: entry.applied.skills,
         dresses: {},
         optionalDresses: {},
-        underwear: entry.applied.underwear ?? [],
+        lingerie: entry.applied.lingerie ?? [],
       },
       secrets: {},
       crons: entry.applied.crons.map((c) => {
@@ -780,7 +780,7 @@ export default class Dress extends BaseCommand {
       content = await readFile(heartbeatPath, 'utf-8');
     }
 
-    if (content.includes(`clawset:${dressId}:start`)) return;
+    if (content.includes(`clawtique:${dressId}:start`)) return;
 
     const rulesBlock = rules.map((r) => `- ${r}`).join('\n');
     const section = `\n## ${dressId}\n${rulesBlock}\n`;

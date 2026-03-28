@@ -9,12 +9,12 @@ const registryDressEntrySchema = z.object({
   version: z.string(),
   description: z.string().default(''),
   requires: z.object({
-    underwear: z.array(z.string()).default([]),
+    lingerie: z.array(z.string()).default([]),
   }).default({}),
   path: z.string(),
 });
 
-const registryUnderwearEntrySchema = z.object({
+const registryLingerieEntrySchema = z.object({
   name: z.string(),
   version: z.string(),
   description: z.string().default(''),
@@ -25,7 +25,7 @@ export const registryIndexSchema = z.object({
   version: z.literal(1),
   generatedAt: z.string().datetime(),
   dresses: z.record(z.string(), registryDressEntrySchema).default({}),
-  underwear: z.record(z.string(), registryUnderwearEntrySchema).default({}),
+  lingerie: z.record(z.string(), registryLingerieEntrySchema).default({}),
 });
 
 // ---------------------------------------------------------------------------
@@ -34,4 +34,4 @@ export const registryIndexSchema = z.object({
 
 export type RegistryIndex = z.infer<typeof registryIndexSchema>;
 export type RegistryDressEntry = z.infer<typeof registryDressEntrySchema>;
-export type RegistryUnderwearEntry = z.infer<typeof registryUnderwearEntrySchema>;
+export type RegistryLingerieEntry = z.infer<typeof registryLingerieEntrySchema>;

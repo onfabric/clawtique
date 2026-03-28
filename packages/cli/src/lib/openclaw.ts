@@ -2,7 +2,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { mkdir, writeFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { OpenClawDriver, CronListEntry, CronDef, AppliedCron, PluginConfigSchema } from '@clawset/core';
+import type { OpenClawDriver, CronListEntry, CronDef, AppliedCron, PluginConfigSchema } from '@clawtique/core';
 import type { ExecFn } from './exec-recorder.js';
 
 const execFileAsync = promisify(execFile);

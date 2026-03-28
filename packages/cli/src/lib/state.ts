@@ -3,23 +3,23 @@ import { existsSync } from 'node:fs';
 import { dirname } from 'node:path';
 import writeFileAtomic from 'write-file-atomic';
 import lockfile from 'proper-lockfile';
-import type { StateFile, DressEntry } from '@clawset/core';
-import { stateFileSchema } from '@clawset/core';
-import type { ClawsetPaths } from './paths.js';
+import type { StateFile, DressEntry } from '@clawtique/core';
+import { stateFileSchema } from '@clawtique/core';
+import type { ClawtiquePaths } from './paths.js';
 
 const EMPTY_STATE: StateFile = {
   version: 1,
   serial: 0,
   openclawDir: '',
   dresses: {},
-  underwear: {},
+  lingerie: {},
 };
 
 export class StateManager {
-  private paths: ClawsetPaths;
+  private paths: ClawtiquePaths;
   private release: (() => Promise<void>) | null = null;
 
-  constructor(paths: ClawsetPaths) {
+  constructor(paths: ClawtiquePaths) {
     this.paths = paths;
   }
 
@@ -50,7 +50,7 @@ export class StateManager {
       });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
-      throw new Error(`Could not acquire lock — another clawset process may be running.\n${message}`);
+      throw new Error(`Could not acquire lock — another clawtique process may be running.\n${message}`);
     }
   }
 
@@ -80,8 +80,8 @@ export class StateManager {
       for (const s of entry.applied.skills) skills.add(s);
     }
 
-    // Include underwear-managed plugins
-    for (const entry of Object.values(state.underwear ?? {})) {
+    // Include lingerie-managed plugins
+    for (const entry of Object.values(state.lingerie ?? {})) {
       for (const p of entry.applied.plugins) plugins.add(p);
     }
 

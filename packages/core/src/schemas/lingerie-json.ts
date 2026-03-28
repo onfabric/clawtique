@@ -2,10 +2,10 @@ import { z } from 'zod';
 import { dressIdSchema, semverSchema, pluginDefSchema } from './dress-json.js';
 
 // ---------------------------------------------------------------------------
-// underwear.json schema
+// lingerie.json schema
 // ---------------------------------------------------------------------------
 
-export const underwearJsonSchema = z.object({
+export const lingerieJsonSchema = z.object({
   id: dressIdSchema,
   name: z.string().min(1),
   version: semverSchema,
@@ -17,4 +17,4 @@ export const underwearJsonSchema = z.object({
 // Inferred types
 // ---------------------------------------------------------------------------
 
-export type UnderwearJson = z.infer<typeof underwearJsonSchema>;
+export type LingerieJson = z.infer<typeof lingerieJsonSchema>;

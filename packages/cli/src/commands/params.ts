@@ -112,7 +112,7 @@ export default class Params extends BaseCommand {
 
     this.warn(
       'Param changes are saved to state but skills are not re-compiled.\n' +
-      '  To apply, run: clawset undress ' + args.id + ' && clawset dress ' + args.id,
+      '  To apply, run: clawtique undress ' + args.id + ' && clawtique dress ' + args.id,
     );
 
     // Apply

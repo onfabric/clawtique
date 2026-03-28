@@ -4,8 +4,8 @@ import { wrapSection, stripMarkers, removeSection } from '../src/memory.js';
 describe('wrapSection', () => {
   test('wraps content in markers', () => {
     const result = wrapSection('fitness', '## Rules\n- Do stuff\n');
-    expect(result).toContain('<!-- clawset:fitness:start -->');
-    expect(result).toContain('<!-- clawset:fitness:end -->');
+    expect(result).toContain('<!-- clawtique:fitness:start -->');
+    expect(result).toContain('<!-- clawtique:fitness:end -->');
     expect(result).toContain('## Rules');
   });
 });
@@ -15,14 +15,14 @@ describe('stripMarkers', () => {
     const input = [
       '# HEARTBEAT.md',
       '',
-      '<!-- clawset:fitness:start -->',
+      '<!-- clawtique:fitness:start -->',
       '## fitness',
       '- nudge if late',
-      '<!-- clawset:fitness:end -->',
+      '<!-- clawtique:fitness:end -->',
     ].join('\n');
 
     const result = stripMarkers('fitness', input);
-    expect(result).not.toContain('clawset:fitness');
+    expect(result).not.toContain('clawtique:fitness');
     expect(result).toContain('## fitness');
     expect(result).toContain('- nudge if late');
   });
@@ -36,16 +36,16 @@ describe('removeSection', () => {
       '## Check-in',
       '- check stuff',
       '',
-      '<!-- clawset:fitness:start -->',
+      '<!-- clawtique:fitness:start -->',
       '',
       '## fitness',
       '- nudge if late',
       '',
-      '<!-- clawset:fitness:end -->',
+      '<!-- clawtique:fitness:end -->',
     ].join('\n');
 
     const result = removeSection('fitness', input);
-    expect(result).not.toContain('clawset:fitness');
+    expect(result).not.toContain('clawtique:fitness');
     expect(result).not.toContain('nudge if late');
     expect(result).toContain('# HEARTBEAT.md');
     expect(result).toContain('## Check-in');
@@ -56,18 +56,18 @@ describe('removeSection', () => {
     const input = [
       '# HEARTBEAT.md',
       '',
-      '<!-- clawset:fitness:start -->',
+      '<!-- clawtique:fitness:start -->',
       '- fitness rule',
-      '<!-- clawset:fitness:end -->',
+      '<!-- clawtique:fitness:end -->',
       '',
-      '<!-- clawset:reading:start -->',
+      '<!-- clawtique:reading:start -->',
       '- reading rule',
-      '<!-- clawset:reading:end -->',
+      '<!-- clawtique:reading:end -->',
     ].join('\n');
 
     const result = removeSection('fitness', input);
     expect(result).not.toContain('fitness rule');
-    expect(result).toContain('<!-- clawset:reading:start -->');
+    expect(result).toContain('<!-- clawtique:reading:start -->');
     expect(result).toContain('- reading rule');
   });
 
@@ -76,9 +76,9 @@ describe('removeSection', () => {
       '# HEARTBEAT.md',
       '',
       '',
-      '<!-- clawset:fitness:start -->',
+      '<!-- clawtique:fitness:start -->',
       '- rule',
-      '<!-- clawset:fitness:end -->',
+      '<!-- clawtique:fitness:end -->',
       '',
       '',
       '## Other',

@@ -3,7 +3,7 @@ import chalk from 'chalk';
 import { BaseCommand } from '../base.js';
 
 export default class Diff extends BaseCommand {
-  static summary = 'Show what clawset has applied vs the current OpenClaw state';
+  static summary = 'Show what clawtique has applied vs the current OpenClaw state';
 
   static examples = ['<%= config.bin %> diff'];
 
@@ -31,7 +31,7 @@ export default class Diff extends BaseCommand {
       return;
     }
 
-    this.log(`\n${chalk.bold('Applied by Clawset')}\n`);
+    this.log(`\n${chalk.bold('Applied by Clawtique')}\n`);
 
     if (applied.crons.size > 0) {
       this.log(chalk.bold('  Crons:'));

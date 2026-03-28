@@ -2,20 +2,20 @@ import { Args, Flags } from '@oclif/core';
 import chalk from 'chalk';
 import { confirm, select } from '@inquirer/prompts';
 import { Listr } from 'listr2';
-import type { StateFile } from '@clawset/core';
+import type { StateFile } from '@clawtique/core';
 import { BaseCommand } from '../../base.js';
 
-export default class UnderwearRemove extends BaseCommand {
-  static summary = 'Remove shared underwear (uninstalls plugins if no dress depends on it)';
+export default class LingerieRemove extends BaseCommand {
+  static summary = 'Remove shared lingerie (uninstalls plugins if no dress depends on it)';
 
   static examples = [
-    '<%= config.bin %> underwear remove waclaw',
-    '<%= config.bin %> underwear remove waclaw --dry-run',
+    '<%= config.bin %> lingerie remove waclaw',
+    '<%= config.bin %> lingerie remove waclaw --dry-run',
   ];
 
   static args = {
     id: Args.string({
-      description: 'Underwear ID to remove',
+      description: 'Lingerie ID to remove',
       required: false,
     }),
   };
@@ -38,37 +38,37 @@ export default class UnderwearRemove extends BaseCommand {
   };
 
   async run(): Promise<void> {
-    const { args, flags } = await this.parse(UnderwearRemove);
+    const { args, flags } = await this.parse(LingerieRemove);
     await this.loadConfig();
 
     const state = await this.stateManager.load();
-    const underwearEntries = Object.entries(state.underwear ?? {});
+    const lingerieEntries = Object.entries(state.lingerie ?? {});
 
-    let underwearId = args.id;
+    let lingerieId = args.id;
 
     // Interactive picker if no ID given
-    if (!underwearId) {
-      if (underwearEntries.length === 0) {
-        this.error('No active underwear to remove.\nRun "clawset underwear list" to check.');
+    if (!lingerieId) {
+      if (lingerieEntries.length === 0) {
+        this.error('No active lingerie to remove.\nRun "clawtique lingerie list" to check.');
       }
-      underwearId = await select({
-        message: 'Choose underwear to remove',
-        choices: underwearEntries.map(([id, entry]) => ({
+      lingerieId = await select({
+        message: 'Choose lingerie to remove',
+        choices: lingerieEntries.map(([id, entry]) => ({
           name: `${id} ${chalk.dim(`v${entry.version}`)}`,
           value: id,
         })),
       });
     }
 
-    const entry = state.underwear?.[underwearId];
+    const entry = state.lingerie?.[lingerieId];
     if (!entry) {
-      this.error(`Underwear "${underwearId}" is not active.\nRun "clawset underwear list" to see active underwear.`);
+      this.error(`Lingerie "${lingerieId}" is not active.\nRun "clawtique lingerie list" to see active lingerie.`);
     }
 
     // Check for dependant dresses
-    const dependants = this.findDependantDresses(state, underwearId);
+    const dependants = this.findDependantDresses(state, lingerieId);
     if (dependants.length > 0 && !flags.force) {
-      this.log(chalk.yellow(`\nWarning: The following dresses depend on underwear "${underwearId}":`));
+      this.log(chalk.yellow(`\nWarning: The following dresses depend on lingerie "${lingerieId}":`));
       for (const dep of dependants) {
         this.log(`  - ${dep}`);
       }
@@ -82,13 +82,13 @@ export default class UnderwearRemove extends BaseCommand {
     const pluginsRetained = entry.applied.plugins.filter((p) => !installedPluginSet.has(p));
 
     // Show what will happen
-    this.log(chalk.bold(`\nRemoving underwear "${underwearId}":\n`));
+    this.log(chalk.bold(`\nRemoving lingerie "${lingerieId}":\n`));
 
     for (const p of pluginsToRemove) {
       this.log(`  ${chalk.red('-')} plugin: ${p}`);
     }
     for (const p of pluginsRetained) {
-      this.log(`  ${chalk.dim('~')} plugin: ${p} ${chalk.dim('(not installed by clawset — retained)')}`);
+      this.log(`  ${chalk.dim('~')} plugin: ${p} ${chalk.dim('(not installed by clawtique — retained)')}`);
     }
     this.log('');
 
@@ -143,7 +143,7 @@ export default class UnderwearRemove extends BaseCommand {
         {
           title: 'Saving state',
           task: async () => {
-            delete state.underwear[underwearId];
+            delete state.lingerie[lingerieId];
             await this.stateManager.save(state);
           },
         },
@@ -156,9 +156,9 @@ export default class UnderwearRemove extends BaseCommand {
         pluginsRetained.length > 0 ? `retained plugins: ${pluginsRetained.join(', ')}` : '',
       ].filter(Boolean).join('\n');
 
-      await this.gitManager.commit('revert', underwearId, 'underwear remove', body);
+      await this.gitManager.commit('revert', lingerieId, 'lingerie remove', body);
 
-      this.log(`\n${chalk.green('✓')} Removed underwear "${underwearId}".`);
+      this.log(`\n${chalk.green('✓')} Removed lingerie "${lingerieId}".`);
     } catch (err) {
       if (snapshot) await this.gitManager.rollback(snapshot);
       throw err;
@@ -167,10 +167,10 @@ export default class UnderwearRemove extends BaseCommand {
     }
   }
 
-  private findDependantDresses(state: StateFile, underwearId: string): string[] {
+  private findDependantDresses(state: StateFile, lingerieId: string): string[] {
     const dependants: string[] = [];
     for (const [dressId, entry] of Object.entries(state.dresses)) {
-      if ((entry.applied.underwear ?? []).includes(underwearId)) {
+      if ((entry.applied.lingerie ?? []).includes(lingerieId)) {
         dependants.push(dressId);
       }
     }

@@ -54,10 +54,10 @@ export default class Doctor extends BaseCommand {
         }
       }
 
-      // Check dress directory in clawset
-      const clawsetDressDir = join(this.clawsetPaths.dresses, id);
-      if (existsSync(clawsetDressDir)) {
-        this.log(`    ${chalk.green('✓')} Dress definition at ${clawsetDressDir}`);
+      // Check dress directory in clawtique
+      const clawtiqueDressDir = join(this.clawtiquePaths.dresses, id);
+      if (existsSync(clawtiqueDressDir)) {
+        this.log(`    ${chalk.green('✓')} Dress definition at ${clawtiqueDressDir}`);
       } else {
         this.log(`    ${chalk.yellow('!')} No local dress definition (may need reinstall)`);
       }

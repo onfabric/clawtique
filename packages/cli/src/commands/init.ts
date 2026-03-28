@@ -4,12 +4,12 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { input, confirm } from '@inquirer/prompts';
 import chalk from 'chalk';
-import type { ClawsetConfig, StateFile } from '@clawset/core';
-import { getClawsetPaths, getOpenClawPaths } from '../lib/paths.js';
+import type { ClawtiqueConfig, StateFile } from '@clawtique/core';
+import { getClawtiquePaths, getOpenClawPaths } from '../lib/paths.js';
 import { GitManager } from '../lib/git.js';
 
 export default class Init extends Command {
-  static summary = 'Initialize clawset for an OpenClaw instance';
+  static summary = 'Initialize clawtique for an OpenClaw instance';
 
   static examples = [
     '<%= config.bin %> init',
@@ -21,21 +21,21 @@ export default class Init extends Command {
       char: 'o',
       description: 'Path to the OpenClaw directory',
     }),
-    'clawset-dir': Flags.string({
-      description: 'Path to clawset directory (default: ~/.clawset)',
-      env: 'CLAWSET_DIR',
+    'clawtique-dir': Flags.string({
+      description: 'Path to clawtique directory (default: ~/.clawtique)',
+      env: 'CLAWTIQUE_DIR',
     }),
   };
 
   async run(): Promise<void> {
     const { flags } = await this.parse(Init);
 
-    const paths = getClawsetPaths(flags['clawset-dir']);
+    const paths = getClawtiquePaths(flags['clawtique-dir']);
 
     // Check if already initialized
     if (existsSync(paths.config)) {
       const overwrite = await confirm({
-        message: 'Clawset is already initialized. Re-initialize?',
+        message: 'Clawtique is already initialized. Re-initialize?',
         default: false,
       });
       if (!overwrite) {
@@ -67,13 +67,13 @@ export default class Init extends Command {
       }
     }
 
-    // Create clawset directory structure
+    // Create clawtique directory structure
     await mkdir(paths.root, { recursive: true });
     await mkdir(paths.dresses, { recursive: true });
     await mkdir(join(openclawDir, 'dresses'), { recursive: true });
 
     // Write config
-    const config: ClawsetConfig = {
+    const config: ClawtiqueConfig = {
       openclawDir,
       timezone: 'UTC',
       version: '0.1.0',
@@ -86,22 +86,22 @@ export default class Init extends Command {
       serial: 0,
       openclawDir,
       dresses: {},
-      underwear: {},
+      lingerie: {},
     };
     await writeFile(paths.state, JSON.stringify(state, null, 2) + '\n');
 
     // Initialize git repo
     const git = new GitManager(paths.root);
     await git.init();
-    await git.commit('feat', 'clawset', 'initialize clawset');
+    await git.commit('feat', 'clawtique', 'initialize clawtique');
 
     this.log('');
-    this.log(chalk.green('✓') + ' Initialized clawset at ' + chalk.cyan(paths.root));
+    this.log(chalk.green('✓') + ' Initialized clawtique at ' + chalk.cyan(paths.root));
     this.log(chalk.green('✓') + ' OpenClaw directory: ' + chalk.cyan(openclawDir));
     this.log(chalk.green('✓') + ' Git repo initialized');
     this.log('');
     this.log('Ready. Try:');
-    this.log(`  ${chalk.cyan('clawset dress')} ./path/to/dress`);
-    this.log(`  ${chalk.cyan('clawset status')}`);
+    this.log(`  ${chalk.cyan('clawtique dress')} ./path/to/dress`);
+    this.log(`  ${chalk.cyan('clawtique status')}`);
   }
 }

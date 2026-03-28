@@ -3,19 +3,19 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "clawset",
+      "name": "clawtique",
       "devDependencies": {
         "typescript": "^5.7.0",
       },
     },
     "packages/cli": {
-      "name": "@clawset/cli",
+      "name": "@clawtique/cli",
       "version": "0.1.0",
       "bin": {
-        "clawset": "./bin/run.js",
+        "clawtique": "./bin/run.js",
       },
       "dependencies": {
-        "@clawset/core": "workspace:*",
+        "@clawtique/core": "workspace:*",
         "@inquirer/prompts": "^7.0.0",
         "@oclif/core": "^4.0.0",
         "chalk": "^5.4.0",
@@ -34,7 +34,7 @@
       },
     },
     "packages/core": {
-      "name": "@clawset/core",
+      "name": "@clawtique/core",
       "version": "0.1.0",
       "dependencies": {
         "zod": "^3.24.0",
@@ -43,107 +43,11 @@
         "typescript": "^5.7.0",
       },
     },
-    "packages/dress-daily-pill": {
-      "name": "@clawset/dress-daily-pill",
-      "version": "1.0.0",
-      "dependencies": {
-        "@clawset/core": "workspace:*",
-      },
-      "devDependencies": {
-        "typescript": "^5.7.0",
-      },
-    },
-    "packages/dress-daily-reflection": {
-      "name": "@clawset/dress-daily-reflection",
-      "version": "1.0.0",
-      "dependencies": {
-        "@clawset/core": "workspace:*",
-      },
-      "devDependencies": {
-        "typescript": "^5.7.0",
-      },
-    },
-    "packages/dress-fabric": {
-      "name": "@clawset/dress-fabric",
-      "version": "1.0.0",
-      "dependencies": {
-        "@clawset/core": "workspace:*",
-      },
-      "devDependencies": {
-        "typescript": "^5.7.0",
-      },
-    },
-    "packages/dress-fitness-coach": {
-      "name": "@clawset/dress-fitness-coach",
-      "version": "1.0.0",
-      "dependencies": {
-        "@clawset/core": "workspace:*",
-      },
-      "devDependencies": {
-        "typescript": "^5.7.0",
-      },
-    },
-    "packages/dress-ontology": {
-      "name": "@clawset/dress-ontology",
-      "version": "1.0.0",
-      "dependencies": {
-        "@clawset/core": "workspace:*",
-      },
-      "devDependencies": {
-        "typescript": "^5.7.0",
-      },
-    },
-    "packages/dress-sleeping-coach": {
-      "name": "@clawset/dress-sleeping-coach",
-      "version": "1.0.0",
-      "dependencies": {
-        "@clawset/core": "workspace:*",
-      },
-      "devDependencies": {
-        "typescript": "^5.7.0",
-      },
-    },
-    "packages/dress-tech-bro-digest": {
-      "name": "@clawset/dress-tech-bro-digest",
-      "version": "1.0.0",
-      "dependencies": {
-        "@clawset/core": "workspace:*",
-      },
-      "devDependencies": {
-        "typescript": "^5.7.0",
-      },
-    },
-    "packages/underwear-waclaw": {
-      "name": "@clawset/underwear-waclaw",
-      "version": "1.0.0",
-      "dependencies": {
-        "@clawset/core": "workspace:*",
-      },
-      "devDependencies": {
-        "typescript": "^5.7.0",
-      },
-    },
   },
   "packages": {
-    "@clawset/cli": ["@clawset/cli@workspace:packages/cli"],
+    "@clawtique/cli": ["@clawtique/cli@workspace:packages/cli"],
 
-    "@clawset/core": ["@clawset/core@workspace:packages/core"],
-
-    "@clawset/dress-daily-pill": ["@clawset/dress-daily-pill@workspace:packages/dress-daily-pill"],
-
-    "@clawset/dress-daily-reflection": ["@clawset/dress-daily-reflection@workspace:packages/dress-daily-reflection"],
-
-    "@clawset/dress-fabric": ["@clawset/dress-fabric@workspace:packages/dress-fabric"],
-
-    "@clawset/dress-fitness-coach": ["@clawset/dress-fitness-coach@workspace:packages/dress-fitness-coach"],
-
-    "@clawset/dress-ontology": ["@clawset/dress-ontology@workspace:packages/dress-ontology"],
-
-    "@clawset/dress-sleeping-coach": ["@clawset/dress-sleeping-coach@workspace:packages/dress-sleeping-coach"],
-
-    "@clawset/dress-tech-bro-digest": ["@clawset/dress-tech-bro-digest@workspace:packages/dress-tech-bro-digest"],
-
-    "@clawset/underwear-waclaw": ["@clawset/underwear-waclaw@workspace:packages/underwear-waclaw"],
+    "@clawtique/core": ["@clawtique/core@workspace:packages/core"],
 
     "@inquirer/ansi": ["@inquirer/ansi@1.0.2", "", {}, "sha512-S8qNSZiYzFd0wAcyG5AXCvUHC5Sr7xpZ9wZ2py9XR88jUz8wooStVx5M6dRzczbBWjic9NP7+rY0Xi7qqK/aMQ=="],
 
@@ -377,7 +281,7 @@
 
     "cli-truncate/string-width/emoji-regex": ["emoji-regex@10.6.0", "", {}, "sha512-toUI84YS5YmxW219erniWD0CIVOo46xGKColeNQRgOzDorgBi1v4D71/OFzgD9GO2UGKIv1C3Sp8DAn0+j5w7A=="],
 
-    "filelist/minimatch/brace-expansion": ["brace-expansion@2.0.2", "", { "dependencies": { "balanced-match": "^1.0.0" } }, "sha512-Jt0vHyM+jmUBqojB7E1NIYadt0vI0Qxjxd2TErW94wDz+E2LAm5vKMXXwg6ZZBTHPuUlDgQHKXvjGBdfcF1ZDQ=="],
+    "filelist/minimatch/brace-expansion": ["brace-expansion@2.0.3", "", { "dependencies": { "balanced-match": "^1.0.0" } }, "sha512-MCV/fYJEbqx68aE58kv2cA/kiky1G8vux3OR6/jbS+jIMe/6fJWa0DTzJU7dqijOWYwHi1t29FlfYI9uytqlpA=="],
 
     "listr2/wrap-ansi/ansi-styles": ["ansi-styles@6.2.3", "", {}, "sha512-4Dj6M28JB+oAH8kFkTLUo+a2jwOFkuqb3yucU0CANcRRUbxS0cP0nZYCGjcc3BNXwRIsUVmDGgzawme7zvJHvg=="],
 

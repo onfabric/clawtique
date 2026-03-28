@@ -39,7 +39,7 @@ export default class Log extends BaseCommand {
       return;
     }
 
-    this.log(`\n${chalk.bold('Clawset History')}\n`);
+    this.log(`\n${chalk.bold('Clawtique History')}\n`);
 
     for (const entry of entries) {
       const { hash, date, message } = entry;

@@ -5,7 +5,7 @@
   "description": "One bookmark a day — the most relevant link for what you're working on right now.",
 
   "requires": {
-    "underwear": ["waclaw"]
+    "lingerie": ["waclaw"]
   },
 
   "crons": [

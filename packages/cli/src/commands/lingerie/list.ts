@@ -2,10 +2,10 @@ import { Flags } from '@oclif/core';
 import chalk from 'chalk';
 import { BaseCommand } from '../../base.js';
 
-export default class UnderwearList extends BaseCommand {
-  static summary = 'List active underwear';
+export default class LingerieList extends BaseCommand {
+  static summary = 'List active lingerie';
 
-  static examples = ['<%= config.bin %> underwear list'];
+  static examples = ['<%= config.bin %> lingerie list'];
 
   static flags = {
     ...BaseCommand.baseFlags,
@@ -16,24 +16,24 @@ export default class UnderwearList extends BaseCommand {
   };
 
   async run(): Promise<void> {
-    const { flags } = await this.parse(UnderwearList);
+    const { flags } = await this.parse(LingerieList);
     await this.loadConfig();
 
     const state = await this.stateManager.load();
-    const entries = Object.entries(state.underwear ?? {});
+    const entries = Object.entries(state.lingerie ?? {});
 
     if (flags.json) {
-      this.log(JSON.stringify(state.underwear ?? {}, null, 2));
+      this.log(JSON.stringify(state.lingerie ?? {}, null, 2));
       return;
     }
 
     if (entries.length === 0) {
-      this.log('\nNo underwear active.');
-      this.log(`Run ${chalk.cyan('clawset underwear add <specifier>')} to get started.\n`);
+      this.log('\nNo lingerie active.');
+      this.log(`Run ${chalk.cyan('clawtique lingerie add <specifier>')} to get started.\n`);
       return;
     }
 
-    this.log(`\n${chalk.bold('Active Underwear')}\n`);
+    this.log(`\n${chalk.bold('Active Lingerie')}\n`);
 
     for (const [id, entry] of entries) {
       this.log(
@@ -45,10 +45,10 @@ export default class UnderwearList extends BaseCommand {
         this.log(`    plugins: ${entry.applied.plugins.join(', ')}`);
       }
 
-      // Find which dresses depend on this underwear
+      // Find which dresses depend on this lingerie
       const dependants: string[] = [];
       for (const [dressId, dressEntry] of Object.entries(state.dresses)) {
-        if ((dressEntry.applied.underwear ?? []).includes(id)) {
+        if ((dressEntry.applied.lingerie ?? []).includes(id)) {
           dependants.push(dressId);
         }
       }
@@ -59,7 +59,7 @@ export default class UnderwearList extends BaseCommand {
       this.log('');
     }
 
-    this.log(chalk.dim(`  ${entries.length} underwear active`));
+    this.log(chalk.dim(`  ${entries.length} lingerie active`));
     this.log('');
   }
 }
