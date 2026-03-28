@@ -2,7 +2,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { mkdir, writeFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { OpenClawDriver, CronListEntry, CronDef, AppliedCron } from '@clawset/core';
+import type { OpenClawDriver, CronListEntry, CronDef, AppliedCron, PluginConfigSchema } from '@clawset/core';
 import type { ExecFn } from './exec-recorder.js';
 
 const execFileAsync = promisify(execFile);
@@ -168,6 +168,31 @@ export class LocalOpenClawDriver implements OpenClawDriver {
       return !!info.plugin && !!info.install && !info.error;
     } catch {
       return false;
+    }
+  }
+
+  async pluginConfigSchema(id: string): Promise<PluginConfigSchema | undefined> {
+    const { stdout, exitCode } = await this.exec(['plugins', 'inspect', id, '--json']);
+    if (exitCode !== 0) return undefined;
+    try {
+      const info = JSON.parse(stdout);
+      const schema = info.plugin?.configJsonSchema;
+      if (!schema?.properties) return undefined;
+
+      const kind: string = info.plugin?.kind ?? 'plugin';
+      // Channel plugins store config under channels.<id>, regular plugins under plugins.entries.<id>.config
+      const configPrefix = kind === 'channel'
+        ? `channels.${id}`
+        : `plugins.entries.${id}.config`;
+
+      return {
+        kind,
+        configPrefix,
+        properties: schema.properties,
+        required: schema.required ?? [],
+      };
+    } catch {
+      return undefined;
     }
   }
 

@@ -72,7 +72,7 @@ export {
 export { cronFromTime, addHours } from './cron-utils.js';
 
 // Driver interface
-export type { OpenClawDriver, CronListEntry } from './driver.js';
+export type { OpenClawDriver, CronListEntry, PluginConfigSchema } from './driver.js';
 
 // Re-export zod for dress authors
 export { z } from 'zod';

@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import chalk from 'chalk';
 import { spawn } from 'node:child_process';
-import { confirm, select } from '@inquirer/prompts';
+import { confirm, select, input } from '@inquirer/prompts';
 import { Listr } from 'listr2';
 import type { PluginDef, UnderwearEntry } from '@clawset/core';
 import { BaseCommand } from '../../base.js';
@@ -139,30 +139,50 @@ export default class UnderwearAdd extends BaseCommand {
         }], { concurrent: false });
         await installTask.run();
 
-        // Run interactive setup commands outside Listr
+        // Run plugin setup outside Listr
         for (const plugin of pluginsToInstall) {
-          if (!plugin.setupCommand) continue;
-          this.log(`\n${chalk.bold(`Setting up ${plugin.id}...`)}`);
           if (plugin.setupNotes.length > 0) {
             this.log('');
             for (const note of plugin.setupNotes) {
               this.log(`  ${chalk.cyan('→')} ${note}`);
             }
           }
-          this.log('');
-          const [cmd, ...cmdArgs] = plugin.setupCommand.split(' ');
-          const exitCode = await new Promise<number>((resolve, reject) => {
-            const child = spawn(cmd, cmdArgs, { stdio: 'inherit' });
-            child.on('close', (code: number) => resolve(code));
-            child.on('error', reject);
-          });
-          if (exitCode !== 0) {
-            const cont = await confirm({
-              message: `Setup exited with code ${exitCode}. Did it complete successfully?`,
-              default: true,
+
+          if (plugin.setupCommand) {
+            // Interactive setup command (for complex flows like OAuth)
+            this.log(`\n${chalk.bold(`Setting up ${plugin.id}...`)}`);
+            this.log('');
+            const [cmd, ...cmdArgs] = plugin.setupCommand.split(' ');
+            const exitCode = await new Promise<number>((resolve, reject) => {
+              const child = spawn(cmd, cmdArgs, { stdio: 'inherit' });
+              child.on('close', (code: number) => resolve(code));
+              child.on('error', reject);
             });
-            if (!cont) {
-              throw new Error(`Plugin setup "${plugin.setupCommand}" failed (exit code ${exitCode})`);
+            if (exitCode !== 0) {
+              const cont = await confirm({
+                message: `Setup exited with code ${exitCode}. Did it complete successfully?`,
+                default: true,
+              });
+              if (!cont) {
+                throw new Error(`Plugin setup "${plugin.setupCommand}" failed (exit code ${exitCode})`);
+              }
+            }
+          } else {
+            // Auto-prompt from plugin's configSchema
+            const schema = await this.openclawDriver.pluginConfigSchema(plugin.id);
+            if (schema && Object.keys(schema.properties).length > 0) {
+              this.log(`\n${chalk.bold(`Configuring ${plugin.id}...`)}\n`);
+              for (const [key, prop] of Object.entries(schema.properties)) {
+                const isRequired = schema.required.includes(key);
+                const label = prop.description || key;
+                const suffix = isRequired ? '' : ' (optional)';
+                const value = await input({ message: `${label}${suffix}:` });
+                if (value) {
+                  await this.openclawDriver.configSet(`${schema.configPrefix}.${key}`, value);
+                } else if (isRequired) {
+                  this.error(`Required config "${key}" was not provided.`);
+                }
+              }
             }
           }
         }

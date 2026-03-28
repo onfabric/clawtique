@@ -22,6 +22,7 @@ export interface OpenClawDriver {
   pluginInstall(spec: string): Promise<void>;
   pluginUninstall(id: string): Promise<void>;
   pluginIsInstalled(id: string): Promise<boolean>;
+  pluginConfigSchema(id: string): Promise<PluginConfigSchema | undefined>;
 
   // Config management
   configGet(key: string): Promise<unknown>;
@@ -43,4 +44,11 @@ export interface CronListEntry {
   schedule: string;
   enabled: boolean;
   status: string;
+}
+
+export interface PluginConfigSchema {
+  kind: string;
+  configPrefix: string; // e.g. 'channels.waclaw' or 'plugins.entries.openclaw-fabric.config'
+  properties: Record<string, { type: string; description: string }>;
+  required: string[];
 }

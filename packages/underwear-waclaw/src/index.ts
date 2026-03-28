@@ -10,7 +10,6 @@ export default defineUnderwear({
     {
       id: 'waclaw',
       spec: '@onfabric/waclaw-plugin',
-      setupCommand: 'openclaw waclaw setup',
       setupNotes: [
         'You will need a connector token from the waclaw admin API',
       ],
