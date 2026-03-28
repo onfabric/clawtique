@@ -8,7 +8,7 @@
     "directory": "packages/cli"
   },
   "bin": {
-    "clawtique": "./bin/cli.js"
+    "clawtique": "./bin/run.js"
   },
   "license": "MIT",
   "type": "module",
