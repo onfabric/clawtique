@@ -10,8 +10,8 @@ Setting up OpenClaw for a specific goal means installing skills, wiring cron job
 # Initialize — point at your OpenClaw instance
 clawtique init
 
-# Put on a dress
-clawtique dress
+# Put on a dress (or run without args to browse)
+clawtique dress fitness-coach
 
 # See what's active
 clawtique status
