@@ -1,4 +1,4 @@
-# openclawtique
+# clawtique
 
 A wardrobe for your OpenClaw. Dress it up, take it off, no mess left behind.
 
