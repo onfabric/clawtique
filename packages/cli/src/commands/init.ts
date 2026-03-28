@@ -85,6 +85,7 @@ export default class Init extends Command {
       serial: 0,
       openclawDir,
       dresses: {},
+      underwear: {},
     };
     await writeFile(paths.state, JSON.stringify(state, null, 2) + '\n');
 

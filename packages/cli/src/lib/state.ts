@@ -12,6 +12,7 @@ const EMPTY_STATE: StateFile = {
   serial: 0,
   openclawDir: '',
   dresses: {},
+  underwear: {},
 };
 
 export class StateManager {
@@ -77,6 +78,11 @@ export class StateManager {
       for (const c of entry.applied.crons) crons.add(c.qualifiedId);
       for (const p of entry.applied.plugins) plugins.add(p);
       for (const s of entry.applied.skills) skills.add(s);
+    }
+
+    // Include underwear-managed plugins
+    for (const entry of Object.values(state.underwear ?? {})) {
+      for (const p of entry.applied.plugins) plugins.add(p);
     }
 
     return { crons, plugins, skills };

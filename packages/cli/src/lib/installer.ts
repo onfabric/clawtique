@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import { readFile, cp, mkdir } from 'node:fs/promises';
 import { join, resolve, dirname } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import type { Dress, ParamDef, ResolvedDress } from '@clawset/core';
+import type { Dress, ParamDef, ResolvedDress, Underwear } from '@clawset/core';
 
 export interface InstallResult {
   dress: Dress<Record<string, ParamDef>>;
@@ -121,4 +121,85 @@ export function resolveDress(
   params: Record<string, unknown>,
 ): ResolvedDress {
   return dress.resolve(params as never);
+}
+
+// ---------------------------------------------------------------------------
+// Underwear loading
+// ---------------------------------------------------------------------------
+
+export interface UnderwearInstallResult {
+  underwear: Underwear;
+  packageDir: string;
+  packageName: string;
+}
+
+/**
+ * Load an underwear package from a local directory or module specifier.
+ */
+export async function installUnderwear(
+  specifier: string,
+): Promise<UnderwearInstallResult> {
+  let sourceDir: string;
+  let packageName: string;
+
+  if (specifier.startsWith('.') || specifier.startsWith('/')) {
+    sourceDir = resolve(specifier);
+    if (!existsSync(sourceDir)) {
+      throw new Error(`Underwear directory not found: ${sourceDir}`);
+    }
+    const pkgPath = join(sourceDir, 'package.json');
+    if (existsSync(pkgPath)) {
+      const pkg = JSON.parse(await readFile(pkgPath, 'utf-8'));
+      packageName = pkg.name ?? specifier;
+    } else {
+      packageName = specifier;
+    }
+  } else {
+    try {
+      const resolved = import.meta.resolve(specifier);
+      sourceDir = dirname(new URL(resolved).pathname);
+      packageName = specifier;
+    } catch {
+      throw new Error(
+        `Could not resolve underwear "${specifier}".\n` +
+        `Try installing it first: pnpm add ${specifier}\n` +
+        `Or provide a local path: clawset underwear add ./path/to/underwear`,
+      );
+    }
+  }
+
+  let modulePath: string;
+  const pkgPath = join(sourceDir, 'package.json');
+
+  if (existsSync(pkgPath)) {
+    const pkg = JSON.parse(await readFile(pkgPath, 'utf-8'));
+    const exportsEntry = pkg.exports?.['.'];
+    const mainEntry =
+      typeof exportsEntry === 'string'
+        ? exportsEntry
+        : exportsEntry?.import ?? pkg.main ?? 'dist/index.js';
+    modulePath = join(sourceDir, mainEntry);
+  } else {
+    modulePath = join(sourceDir, 'dist', 'index.js');
+  }
+
+  if (!existsSync(modulePath)) {
+    throw new Error(
+      `Underwear module not found at ${modulePath}.\n` +
+      `Make sure it is built: cd ${sourceDir} && pnpm build`,
+    );
+  }
+
+  const moduleUrl = pathToFileURL(modulePath).href;
+  const mod = await import(moduleUrl);
+  const underwear = (mod.default?.default ?? mod.default) as Underwear;
+
+  if (!underwear || typeof underwear.resolve !== 'function') {
+    throw new Error(
+      `Invalid underwear module at ${modulePath}.\n` +
+      `The default export must be created with defineUnderwear().`,
+    );
+  }
+
+  return { underwear, packageDir: sourceDir, packageName };
 }

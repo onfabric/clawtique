@@ -14,6 +14,9 @@ export {
   appliedCronSchema,
   appliedStateSchema,
   dressEntrySchema,
+  underwearDefSchema,
+  underwearAppliedSchema,
+  underwearEntrySchema,
   stateFileSchema,
   clawsetConfigSchema,
 } from './schema.js';
@@ -30,6 +33,9 @@ export type {
   AppliedCron,
   AppliedState,
   DressEntry,
+  UnderwearDef,
+  UnderwearApplied,
+  UnderwearEntry,
   StateFile,
   ClawsetConfig,
 } from './schema.js';
@@ -40,6 +46,10 @@ export { generateDresscode } from './dresscode.js';
 // Dress definition
 export { defineDress } from './define-dress.js';
 export type { ParamDef, InferParams, DressInput, Dress } from './define-dress.js';
+
+// Underwear definition
+export { defineUnderwear } from './define-underwear.js';
+export type { UnderwearInput, Underwear } from './define-underwear.js';
 
 // Merge and diff
 export { mergeDresses, diffState } from './merge.js';

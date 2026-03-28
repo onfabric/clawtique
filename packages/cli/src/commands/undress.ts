@@ -313,6 +313,10 @@ export default class Undress extends BaseCommand {
       for (const p of entry.applied.plugins) plugins.add(p);
       for (const s of entry.applied.skills) skills.add(s);
     }
+    // Underwear-managed plugins are never removed by undress
+    for (const entry of Object.values(state.underwear ?? {})) {
+      for (const p of entry.applied.plugins) plugins.add(p);
+    }
     return { plugins, skills };
   }
 

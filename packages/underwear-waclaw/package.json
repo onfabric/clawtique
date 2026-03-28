@@ -1,0 +1,29 @@
+{
+  "name": "@clawset/underwear-waclaw",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "WhatsApp channel via waclaw proxy",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "files": ["dist"],
+  "keywords": ["clawset", "clawset-underwear", "whatsapp", "waclaw"],
+  "clawset": {
+    "type": "underwear",
+    "openclaw": ">=2026.3"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "dependencies": {
+    "@clawset/core": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}

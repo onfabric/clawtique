@@ -27,6 +27,28 @@ export default class Status extends BaseCommand {
       return;
     }
 
+    // Show underwear first
+    const uwEntries = Object.entries(state.underwear ?? {});
+    if (uwEntries.length > 0) {
+      this.log(`\n${chalk.bold('Underwear')}\n`);
+      for (const [id, uwEntry] of uwEntries) {
+        this.log(
+          `  ${chalk.magenta(id)} ${chalk.dim(`v${uwEntry.version}`)} ` +
+          chalk.dim(`(${uwEntry.package})`),
+        );
+        if (uwEntry.applied.plugins.length > 0) {
+          this.log(`    plugins: ${uwEntry.applied.plugins.join(', ')}`);
+        }
+        this.log('');
+      }
+    }
+
+    if (entries.length === 0 && uwEntries.length === 0) {
+      this.log('\nNo dresses or underwear active.');
+      this.log(`Run ${chalk.cyan('clawset dress <specifier>')} to get started.\n`);
+      return;
+    }
+
     if (entries.length === 0) {
       this.log('\nNo dresses active.');
       this.log(`Run ${chalk.cyan('clawset dress <specifier>')} to get started.\n`);
@@ -65,7 +87,8 @@ export default class Status extends BaseCommand {
       this.log('');
     }
 
-    this.log(chalk.dim(`  ${entries.length} dress${entries.length === 1 ? '' : 'es'} active | serial: ${state.serial}`));
+    const uwCount = uwEntries.length > 0 ? ` | ${uwEntries.length} underwear` : '';
+    this.log(chalk.dim(`  ${entries.length} dress${entries.length === 1 ? '' : 'es'} active${uwCount} | serial: ${state.serial}`));
     this.log('');
   }
 }

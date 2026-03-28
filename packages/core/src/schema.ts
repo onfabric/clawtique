@@ -79,6 +79,7 @@ export const requiresSchema = z.object({
   skills: z.array(z.string()).default([]),
   dresses: z.record(z.string(), z.string()).default({}),
   optionalDresses: z.record(z.string(), z.string()).default({}),
+  underwear: z.array(z.string()).default([]),
 });
 
 // ---------------------------------------------------------------------------
@@ -119,6 +120,30 @@ export const resolvedDressSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
+// Underwear — shared plugin infrastructure
+// ---------------------------------------------------------------------------
+
+export const underwearDefSchema = z.object({
+  id: dressIdSchema,
+  name: z.string().min(1),
+  version: semverSchema,
+  description: z.string().default(''),
+  plugins: z.array(pluginDefSchema).default([]),
+});
+
+export const underwearAppliedSchema = z.object({
+  plugins: z.array(z.string()).default([]),
+  installedPlugins: z.array(z.string()).default([]),
+});
+
+export const underwearEntrySchema = z.object({
+  package: z.string(),
+  version: semverSchema,
+  installedAt: z.string().datetime(),
+  applied: underwearAppliedSchema,
+});
+
+// ---------------------------------------------------------------------------
 // State file — tracks what clawset has applied
 // ---------------------------------------------------------------------------
 
@@ -137,7 +162,8 @@ export const appliedStateSchema = z.object({
   memorySections: z.array(z.string()).default([]),
   files: z.array(z.string()).default([]),
   heartbeatEntries: z.array(z.string()).default([]),
-  workspaceFiles: z.array(z.string()).default([]), // workspace paths created by dress (preserved on undress)
+  workspaceFiles: z.array(z.string()).default([]),
+  underwear: z.array(z.string()).default([]), // underwear IDs this dress depends on
 });
 
 export const dressEntrySchema = z.object({
@@ -153,6 +179,7 @@ export const stateFileSchema = z.object({
   serial: z.number().int().nonnegative(),
   openclawDir: z.string(),
   dresses: z.record(dressIdSchema, dressEntrySchema).default({}),
+  underwear: z.record(dressIdSchema, underwearEntrySchema).default({}),
 });
 
 // ---------------------------------------------------------------------------
@@ -180,6 +207,9 @@ export type DressFiles = z.infer<typeof dressFilesSchema>;
 export type ResolvedDress = z.infer<typeof resolvedDressSchema>;
 export type AppliedState = z.infer<typeof appliedStateSchema>;
 export type DressEntry = z.infer<typeof dressEntrySchema>;
+export type UnderwearDef = z.infer<typeof underwearDefSchema>;
+export type UnderwearApplied = z.infer<typeof underwearAppliedSchema>;
+export type UnderwearEntry = z.infer<typeof underwearEntrySchema>;
 export type StateFile = z.infer<typeof stateFileSchema>;
 export type ClawsetConfig = z.infer<typeof clawsetConfigSchema>;
 

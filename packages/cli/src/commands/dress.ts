@@ -108,6 +108,16 @@ export default class Dress extends BaseCommand {
       this.error(`Invalid dress definition: ${err instanceof Error ? err.message : err}`);
     }
 
+    // Check underwear dependencies
+    for (const uwId of resolved.requires.underwear ?? []) {
+      if (!state.underwear?.[uwId]) {
+        this.error(
+          `Missing underwear: "${uwId}"\n` +
+          `Run "clawset underwear add ${uwId}" first.`,
+        );
+      }
+    }
+
     // Check hard dependencies
     for (const [depId, depVersion] of Object.entries(resolved.requires.dresses)) {
       if (!this.stateManager.isDressed(state, depId)) {
@@ -438,6 +448,7 @@ export default class Dress extends BaseCommand {
                 files: appliedFiles,
                 heartbeatEntries: [...resolvedHeartbeat],
                 workspaceFiles: Object.keys(resolved.workspace),
+                underwear: [...(resolved.requires.underwear ?? [])],
               },
             };
             state.dresses[dressId] = entry;
@@ -560,6 +571,7 @@ export default class Dress extends BaseCommand {
         skills: entry.applied.skills,
         dresses: {},
         optionalDresses: {},
+        underwear: entry.applied.underwear ?? [],
       },
       secrets: {},
       crons: entry.applied.crons.map((c) => {

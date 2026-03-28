@@ -113,6 +113,16 @@
         "typescript": "^5.7.0",
       },
     },
+    "packages/underwear-waclaw": {
+      "name": "@clawset/underwear-waclaw",
+      "version": "1.0.0",
+      "dependencies": {
+        "@clawset/core": "workspace:*",
+      },
+      "devDependencies": {
+        "typescript": "^5.7.0",
+      },
+    },
   },
   "packages": {
     "@clawset/cli": ["@clawset/cli@workspace:packages/cli"],
@@ -132,6 +142,8 @@
     "@clawset/dress-sleeping-coach": ["@clawset/dress-sleeping-coach@workspace:packages/dress-sleeping-coach"],
 
     "@clawset/dress-tech-bro-digest": ["@clawset/dress-tech-bro-digest@workspace:packages/dress-tech-bro-digest"],
+
+    "@clawset/underwear-waclaw": ["@clawset/underwear-waclaw@workspace:packages/underwear-waclaw"],
 
     "@inquirer/ansi": ["@inquirer/ansi@1.0.2", "", {}, "sha512-S8qNSZiYzFd0wAcyG5AXCvUHC5Sr7xpZ9wZ2py9XR88jUz8wooStVx5M6dRzczbBWjic9NP7+rY0Xi7qqK/aMQ=="],
 
