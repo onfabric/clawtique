@@ -10,11 +10,8 @@ Setting up OpenClaw for a specific goal means installing skills, wiring cron job
 # Initialize — point at your OpenClaw instance
 clawtique init
 
-# Browse available dresses
-clawtique wardrobe
-
-# Put one on
-clawtique dress fitness-coach
+# Put on a dress
+clawtique dress
 
 # See what's active
 clawtique status
@@ -93,8 +90,7 @@ clawtique params fitness-coach --set workout-schedule.time=18:00
 | Command | Description |
 |---------|-------------|
 | `clawtique init` | Initialize clawtique for an OpenClaw instance |
-| `clawtique wardrobe` | Browse available dresses in the registry |
-| `clawtique dress <id>` | Install and activate a dress |
+| `clawtique dress <id>` | Install a dress (interactive picker if no id) |
 | `clawtique undress <id>` | Remove a dress's config, keep its data |
 | `clawtique status` | List active dresses and their components |
 | `clawtique params <id>` | View or update a dress's parameters |

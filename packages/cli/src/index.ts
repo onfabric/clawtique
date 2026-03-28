@@ -11,7 +11,6 @@ import ParamsCommand from '#commands/params.ts';
 import RollbackCommand from '#commands/rollback.ts';
 import StatusCommand from '#commands/status.ts';
 import UndressCommand from '#commands/undress.ts';
-import WardrobeCommand from '#commands/wardrobe.ts';
 
 // Exported for oclif's explicit command-loading strategy.
 // Set synchronously so the export is live before the first await,
@@ -28,7 +27,6 @@ export const COMMANDS = {
   rollback: RollbackCommand,
   status: StatusCommand,
   undress: UndressCommand,
-  wardrobe: WardrobeCommand,
 };
 
 export async function run() {
