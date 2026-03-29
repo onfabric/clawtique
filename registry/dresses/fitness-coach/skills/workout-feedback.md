@@ -1,6 +1,6 @@
 ---
-name: {{skill.name}}
-description: {{skill.description}}
+name: Workout feedback
+description: Collects post-workout feedback and logs training results.
 ---
 
 # Post-Workout Feedback

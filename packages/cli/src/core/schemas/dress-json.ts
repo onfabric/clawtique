@@ -95,8 +95,6 @@ export const skillParamSchema = z
 // ---------------------------------------------------------------------------
 
 export const skillJsonSchema = z.object({
-  name: z.string().min(1),
-  description: z.string().min(1),
   source: z.enum(['bundled', 'clawhub']).default('bundled'),
   params: z.record(z.string(), skillParamSchema).default({}),
 });

@@ -1,6 +1,6 @@
 ---
-name: {{skill.name}}
-description: {{skill.description}}
+name: User check-in
+description: Proactively checks in with the user to gather context and build rapport.
 ---
 
 ## How to run a check-in

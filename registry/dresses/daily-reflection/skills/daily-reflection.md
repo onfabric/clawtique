@@ -1,6 +1,6 @@
 ---
-name: {{skill.name}}
-description: {{skill.description}}
+name: Daily reflection
+description: Guides an end-of-day reflection capturing highlights and setting tomorrow's intentions.
 ---
 
 # Daily Reflection

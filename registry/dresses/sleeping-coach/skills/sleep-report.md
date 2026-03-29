@@ -1,6 +1,6 @@
 ---
-name: {{skill.name}}
-description: {{skill.description}}
+name: Sleep report
+description: Fetches Oura Ring sleep data and sends a morning sleep quality summary.
 ---
 
 # Morning Sleep Report

@@ -2,8 +2,8 @@ import { Args, Flags } from '@oclif/core';
 import chalk from 'chalk';
 import { BaseCommand } from '#base.ts';
 import type { DressJson } from '#core/index.ts';
-import { buildAutoVars, injectVars } from '#lib/compile.ts';
-import { createRegistryProvider } from '#lib/registry.ts';
+import { buildAutoVars, injectVars, parseSkillMeta, type SkillMeta } from '#lib/compile.ts';
+import { createRegistryProvider, type RegistryProvider } from '#lib/registry.ts';
 
 export default class Params extends BaseCommand {
   static override summary = 'View or update params for an active dress';
@@ -56,11 +56,23 @@ export default class Params extends BaseCommand {
         return;
       }
 
-      // Try to fetch dress metadata for richer display
+      // Try to fetch dress + skill metadata for richer display
       let dress: DressJson | undefined;
+      let registry: RegistryProvider | undefined;
+      const skillMetaMap = new Map<string, SkillMeta>();
       try {
-        const registry = createRegistryProvider(process.cwd(), this.clawtiquePaths.cache);
+        registry = createRegistryProvider(process.cwd(), this.clawtiquePaths.cache);
         dress = await registry.getDressJson(args.id);
+        for (const [skillId, skillDef] of Object.entries(dress.skills)) {
+          if (skillDef.source === 'clawhub') continue;
+          try {
+            const content = await registry.getSkillContent(args.id, skillId);
+            const meta = parseSkillMeta(content);
+            if (meta) skillMetaMap.set(skillId, meta);
+          } catch {
+            // skip if skill content unavailable
+          }
+        }
       } catch {
         // Fall back to raw display if registry unavailable
       }
@@ -69,21 +81,22 @@ export default class Params extends BaseCommand {
       for (const [skillId, skillParams] of paramEntries) {
         const paramValues = Object.entries(skillParams as Record<string, unknown>);
         if (paramValues.length === 0) continue;
-        const skillMeta = dress?.skills[skillId];
-        if (skillMeta) {
-          this.log(`  ${chalk.bold(skillMeta.name)} ${chalk.dim(`(${skillId})`)}`);
-          this.log(`  ${chalk.dim(skillMeta.description)}`);
+        const meta = skillMetaMap.get(skillId);
+        if (meta) {
+          this.log(`  ${chalk.bold(meta.name)} ${chalk.dim(`(${skillId})`)}`);
+          this.log(`  ${chalk.dim(meta.description)}`);
         } else {
           this.log(`  ${chalk.dim(skillId)}:`);
         }
+        const skillDef = dress?.skills[skillId];
         for (const [key, value] of paramValues) {
-          const paramMeta = skillMeta?.params[key];
-          const meta = paramMeta
-            ? ` ${chalk.dim(`(${paramMeta.type}, default: ${JSON.stringify(paramMeta.default)})`)}`
+          const paramDef = skillDef?.params[key];
+          const paramInfo = paramDef
+            ? ` ${chalk.dim(`(${paramDef.type}, default: ${JSON.stringify(paramDef.default)})`)}`
             : '';
-          this.log(`    ${key}: ${chalk.yellow(JSON.stringify(value))}${meta}`);
-          if (paramMeta?.description) {
-            this.log(`      ${chalk.dim(paramMeta.description)}`);
+          this.log(`    ${key}: ${chalk.yellow(JSON.stringify(value))}${paramInfo}`);
+          if (paramDef?.description) {
+            this.log(`      ${chalk.dim(paramDef.description)}`);
           }
         }
         this.log('');
@@ -162,11 +175,7 @@ export default class Params extends BaseCommand {
 
           const rawContent = await registry.getSkillContent(args.id, skillId);
           const mergedParams = (entry.params[skillId] ?? {}) as Record<string, unknown>;
-          const injectionVars: Record<string, string> = {
-            ...autoVars,
-            'skill.name': skillDef.name,
-            'skill.description': skillDef.description,
-          };
+          const injectionVars: Record<string, string> = { ...autoVars };
           for (const [key, value] of Object.entries(mergedParams)) {
             injectionVars[key] = Array.isArray(value) ? value.join(', ') : String(value);
           }
@@ -181,7 +190,7 @@ export default class Params extends BaseCommand {
           await this.openclawDriver.skillCopyBundled(skillId, compiled);
         }
         recompiled = true;
-      } catch (err) {
+      } catch (_err) {
         this.warn(
           'Could not re-compile skills (registry unavailable?).\n' +
             '  To apply, run: clawtique undress ' +

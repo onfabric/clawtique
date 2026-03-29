@@ -23,6 +23,8 @@ import {
   type CompiledDress,
   type CronScheduleChoice,
   compileDress,
+  parseSkillMeta,
+  type SkillMeta,
   validateDress,
 } from '#lib/compile.ts';
 import { createRegistryProvider, type RegistryProvider } from '#lib/registry.ts';
@@ -101,50 +103,6 @@ export default class Dress extends BaseCommand {
     }
     this.log('');
 
-    // Dress breakdown
-    const skillEntries = Object.entries(dress.skills);
-    if (skillEntries.length > 0) {
-      this.log(chalk.bold('  Skills:'));
-      for (const [id, skillDef] of skillEntries) {
-        const source = skillDef.source === 'clawhub' ? ' (ClawHub)' : '';
-        this.log(`    ${chalk.cyan(skillDef.name)}${chalk.dim(source)} — ${skillDef.description}`);
-      }
-      this.log('');
-    }
-
-    if (dress.crons.length > 0) {
-      this.log(chalk.bold('  Crons:'));
-      for (const cron of dress.crons) {
-        const time = cron.defaults.time ?? '—';
-        const days = cron.defaults.days ? cron.defaults.days.join(', ') : 'every day';
-        this.log(`    ${cron.name} → ${chalk.cyan(cron.skill)} ${chalk.dim(`(default: ${time}, ${days})`)}`);
-      }
-      this.log('');
-    }
-
-    const extras: string[] = [];
-    if (dress.memory.dailySections.length > 0) {
-      extras.push(`Memory: ${dress.memory.dailySections.join(', ')}`);
-    }
-    if (dress.heartbeat.length > 0) {
-      extras.push(`Heartbeat: ${dress.heartbeat.length} rule(s)`);
-    }
-    if (Object.keys(dress.workspace).length > 0) {
-      extras.push(`Workspace: ${Object.keys(dress.workspace).length} file(s)`);
-    }
-    if (dress.requires.plugins.length > 0) {
-      extras.push(`Plugins: ${dress.requires.plugins.map((p) => p.id).join(', ')}`);
-    }
-    if (dress.requires.lingerie.length > 0) {
-      extras.push(`Requires: ${dress.requires.lingerie.join(', ')}`);
-    }
-    if (extras.length > 0) {
-      for (const extra of extras) {
-        this.log(`  ${chalk.dim(extra)}`);
-      }
-      this.log('');
-    }
-
     // Check if already dressed
     if (this.stateManager.isDressed(state, dress.id)) {
       this.error(`Already dressed in "${dress.id}". Undress first: clawtique undress ${dress.id}`);
@@ -172,6 +130,66 @@ export default class Dress extends BaseCommand {
     }
     for (const warn of validation.warnings) {
       this.warn(warn);
+    }
+
+    // Build skill metadata map from frontmatter
+    const skillMetaMap = new Map<string, SkillMeta>();
+    for (const [skillId, skillDef] of Object.entries(dress.skills)) {
+      if (skillDef.source === 'clawhub') continue;
+      const content = skillContents.get(skillId);
+      if (content) {
+        const meta = parseSkillMeta(content);
+        if (meta) skillMetaMap.set(skillId, meta);
+      }
+    }
+
+    // Dress breakdown
+    const skillEntries = Object.entries(dress.skills);
+    if (skillEntries.length > 0) {
+      this.log(chalk.bold('  Skills:'));
+      for (const [id, skillDef] of skillEntries) {
+        const meta = skillMetaMap.get(id);
+        const source = skillDef.source === 'clawhub' ? ' (ClawHub)' : '';
+        const displayName = meta?.name ?? id;
+        const desc = meta?.description ? ` — ${meta.description}` : '';
+        this.log(`    ${chalk.cyan(displayName)}${chalk.dim(source)}${desc}`);
+      }
+      this.log('');
+    }
+
+    if (dress.crons.length > 0) {
+      this.log(chalk.bold('  Crons:'));
+      for (const cron of dress.crons) {
+        const time = cron.defaults.time ?? '—';
+        const days = cron.defaults.days ? cron.defaults.days.join(', ') : 'every day';
+        this.log(
+          `    ${cron.name} → ${chalk.cyan(cron.skill)} ${chalk.dim(`(default: ${time}, ${days})`)}`,
+        );
+      }
+      this.log('');
+    }
+
+    const extras: string[] = [];
+    if (dress.memory.dailySections.length > 0) {
+      extras.push(`Memory: ${dress.memory.dailySections.join(', ')}`);
+    }
+    if (dress.heartbeat.length > 0) {
+      extras.push(`Heartbeat: ${dress.heartbeat.length} rule(s)`);
+    }
+    if (Object.keys(dress.workspace).length > 0) {
+      extras.push(`Workspace: ${Object.keys(dress.workspace).length} file(s)`);
+    }
+    if (dress.requires.plugins.length > 0) {
+      extras.push(`Plugins: ${dress.requires.plugins.map((p) => p.id).join(', ')}`);
+    }
+    if (dress.requires.lingerie.length > 0) {
+      extras.push(`Requires: ${dress.requires.lingerie.join(', ')}`);
+    }
+    if (extras.length > 0) {
+      for (const extra of extras) {
+        this.log(`  ${chalk.dim(extra)}`);
+      }
+      this.log('');
     }
 
     // -----------------------------------------------------------------------
@@ -282,13 +300,17 @@ export default class Dress extends BaseCommand {
       const paramEntries = Object.entries(skillDef.params);
       if (paramEntries.length === 0) continue;
 
+      const meta = skillMetaMap.get(skillId);
       const relatedCrons = dress.crons.filter((c) => c.skill === skillId);
       const cronInfo =
         relatedCrons.length > 0
           ? ` ${chalk.dim(`(used by: ${relatedCrons.map((c) => c.name).join(', ')})`)}`
           : '';
-      this.log(`  ${chalk.bold(skillDef.name)}${cronInfo}`);
-      this.log(`  ${chalk.dim(skillDef.description)}\n`);
+      this.log(`  ${chalk.bold(meta?.name ?? skillId)}${cronInfo}`);
+      if (meta?.description) {
+        this.log(`  ${chalk.dim(meta.description)}`);
+      }
+      this.log('');
 
       const values: Record<string, unknown> = {};
 

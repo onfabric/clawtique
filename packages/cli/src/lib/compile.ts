@@ -2,6 +2,29 @@ import type { DressJson, Weekday } from '#core/index.ts';
 import { cronFromTime } from '#core/index.ts';
 
 // ---------------------------------------------------------------------------
+// Skill frontmatter parsing
+// ---------------------------------------------------------------------------
+
+export interface SkillMeta {
+  name: string;
+  description: string;
+}
+
+/**
+ * Parse YAML frontmatter from a skill .md file to extract name and description.
+ * Returns undefined if the frontmatter is missing or incomplete.
+ */
+export function parseSkillMeta(content: string): SkillMeta | undefined {
+  const match = content.match(/^---\n([\s\S]*?)\n---/);
+  if (!match) return undefined;
+  const block = match[1]!;
+  const name = block.match(/^name:\s*(.+)$/m)?.[1]?.trim();
+  const description = block.match(/^description:\s*(.+)$/m)?.[1]?.trim();
+  if (!name || !description) return undefined;
+  return { name, description };
+}
+
+// ---------------------------------------------------------------------------
 // Types for user choices collected during prompting
 // ---------------------------------------------------------------------------
 
@@ -73,8 +96,6 @@ function isAutoVar(name: string): boolean {
     'memory.dailySections',
     'memory.reads',
     'workspace.root',
-    'skill.name',
-    'skill.description',
   ]);
   if (autoVarNames.has(name)) return true;
   return AUTO_VAR_PREFIXES.some((p) => name.startsWith(p));
@@ -204,13 +225,9 @@ export function compileDress(input: CompileInput): CompiledDress {
       throw new Error(`Missing content for bundled skill "${skillId}"`);
     }
 
-    // Build injection vars: auto-vars + per-skill vars + skill params
+    // Build injection vars: auto-vars + skill params
     const paramValues = skillParams[skillId] ?? {};
-    const injectionVars: Record<string, string> = {
-      ...autoVars,
-      'skill.name': skillDef.name,
-      'skill.description': skillDef.description,
-    };
+    const injectionVars: Record<string, string> = { ...autoVars };
     for (const [key, value] of Object.entries(paramValues)) {
       injectionVars[key] = Array.isArray(value) ? value.join(', ') : String(value);
     }

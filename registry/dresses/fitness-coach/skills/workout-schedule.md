@@ -1,6 +1,6 @@
 ---
-name: {{skill.name}}
-description: {{skill.description}}
+name: Workout schedule
+description: Generates and sends the daily workout plan based on training goals and history.
 ---
 
 # Workout Schedule

@@ -1,6 +1,6 @@
 ---
-name: {{skill.name}}
-description: {{skill.description}}
+name: Tech digest
+description: Searches configured news sources and compiles a morning digest of the most relevant stories.
 ---
 
 # Tech Digest
