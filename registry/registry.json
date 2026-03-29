@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-03-28T21:25:02.030Z",
+  "generatedAt": "2026-03-29T15:06:22.177Z",
   "dresses": {
     "sleeping-coach": {
       "name": "Sleeping Coach",
@@ -86,6 +86,14 @@
       "version": "1.0.0",
       "description": "WhatsApp channel plugin via waclaw proxy — shared across dresses that need WhatsApp messaging.",
       "path": "lingerie/waclaw"
+    }
+  },
+  "personalities": {
+    "clawdia": {
+      "name": "Clawdia",
+      "version": "1.0.0",
+      "description": "Your personal concierge — helps you live your best life with warmth, initiative, and taste.",
+      "path": "personalities/clawdia"
     }
   }
 }
