@@ -1,6 +1,6 @@
 ---
-name: daily-pill
-description: Pick the single most relevant bookmark for the user today.
+name: {{skill.name}}
+description: {{skill.description}}
 ---
 
 # Daily Pill

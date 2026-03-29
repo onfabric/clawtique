@@ -30,8 +30,14 @@
   ],
 
   "skills": {
-    "workout-schedule": {},
-    "workout-feedback": {}
+    "workout-schedule": {
+      "name": "Workout schedule",
+      "description": "Generates and sends the daily workout plan based on training goals and history."
+    },
+    "workout-feedback": {
+      "name": "Workout feedback",
+      "description": "Collects post-workout feedback and logs training results."
+    }
   },
 
   "memory": { "dailySections": ["Fitness"] },

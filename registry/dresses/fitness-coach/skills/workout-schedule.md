@@ -1,6 +1,6 @@
 ---
-name: workout-schedule
-description: Create and send a daily workout plan tailored to the user's goals and recent feedback. Use when the daily workout cron fires.
+name: {{skill.name}}
+description: {{skill.description}}
 ---
 
 # Workout Schedule

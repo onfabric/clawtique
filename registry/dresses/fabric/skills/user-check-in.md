@@ -1,6 +1,6 @@
 ---
-name: user-check-in
-description: Check what the user has been up to and try to be helpful.
+name: {{skill.name}}
+description: {{skill.description}}
 ---
 
 ## How to run a check-in

@@ -35,7 +35,10 @@
   ],
 
   "skills": {
-    "sleep-report": {}
+    "sleep-report": {
+      "name": "Sleep report",
+      "description": "Fetches Oura Ring sleep data and sends a morning sleep quality summary."
+    }
   },
 
   "memory": { "dailySections": ["Sleep"] },

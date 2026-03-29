@@ -1,6 +1,6 @@
 ---
-name: daily-reflection
-description: End-of-day reflection — capture what mattered and set tomorrow's intentions.
+name: {{skill.name}}
+description: {{skill.description}}
 ---
 
 # Daily Reflection

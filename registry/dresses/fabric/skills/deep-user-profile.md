@@ -1,6 +1,6 @@
 ---
-name: deep-user-profile
-description: Generate a rich user profile using the available memories.
+name: {{skill.name}}
+description: {{skill.description}}
 ---
 
 Build a rich profile of the user by processing each topic below one at a time. For each topic, run the following three-step pipeline before moving on to the next.

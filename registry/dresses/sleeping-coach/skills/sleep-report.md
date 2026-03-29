@@ -1,6 +1,6 @@
 ---
-name: sleep-report
-description: Analyze last night's sleep and provide actionable coaching advice.
+name: {{skill.name}}
+description: {{skill.description}}
 ---
 
 # Morning Sleep Report

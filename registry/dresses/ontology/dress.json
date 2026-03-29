@@ -18,7 +18,11 @@
   ],
 
   "skills": {
-    "ontology": { "source": "clawhub" }
+    "ontology": {
+      "name": "Ontology",
+      "description": "Maintains a personal knowledge graph by extracting entities and relationships from conversations.",
+      "source": "clawhub"
+    }
   },
 
   "memory": { "dailySections": ["Knowledge Graph"] },

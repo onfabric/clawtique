@@ -1,6 +1,9 @@
 import { Args, Flags } from '@oclif/core';
 import chalk from 'chalk';
 import { BaseCommand } from '#base.ts';
+import type { DressJson } from '#core/index.ts';
+import { buildAutoVars, injectVars } from '#lib/compile.ts';
+import { createRegistryProvider } from '#lib/registry.ts';
 
 export default class Params extends BaseCommand {
   static override summary = 'View or update params for an active dress';
@@ -53,16 +56,38 @@ export default class Params extends BaseCommand {
         return;
       }
 
+      // Try to fetch dress metadata for richer display
+      let dress: DressJson | undefined;
+      try {
+        const registry = createRegistryProvider(process.cwd(), this.clawtiquePaths.cache);
+        dress = await registry.getDressJson(args.id);
+      } catch {
+        // Fall back to raw display if registry unavailable
+      }
+
       this.log(`\n${chalk.bold(args.id)} params:\n`);
       for (const [skillId, skillParams] of paramEntries) {
         const paramValues = Object.entries(skillParams as Record<string, unknown>);
         if (paramValues.length === 0) continue;
-        this.log(`  ${chalk.dim(skillId)}:`);
-        for (const [key, value] of paramValues) {
-          this.log(`    ${key}: ${chalk.yellow(JSON.stringify(value))}`);
+        const skillMeta = dress?.skills[skillId];
+        if (skillMeta) {
+          this.log(`  ${chalk.bold(skillMeta.name)} ${chalk.dim(`(${skillId})`)}`);
+          this.log(`  ${chalk.dim(skillMeta.description)}`);
+        } else {
+          this.log(`  ${chalk.dim(skillId)}:`);
         }
+        for (const [key, value] of paramValues) {
+          const paramMeta = skillMeta?.params[key];
+          const meta = paramMeta
+            ? ` ${chalk.dim(`(${paramMeta.type}, default: ${JSON.stringify(paramMeta.default)})`)}`
+            : '';
+          this.log(`    ${key}: ${chalk.yellow(JSON.stringify(value))}${meta}`);
+          if (paramMeta?.description) {
+            this.log(`      ${chalk.dim(paramMeta.description)}`);
+          }
+        }
+        this.log('');
       }
-      this.log('');
       return;
     }
 
@@ -112,17 +137,10 @@ export default class Params extends BaseCommand {
     }
     this.log('');
 
-    this.warn(
-      'Param changes are saved to state but skills are not re-compiled.\n' +
-        '  To apply, run: clawtique undress ' +
-        args.id +
-        ' && clawtique dress ' +
-        args.id,
-    );
-
     // Apply
     await this.stateManager.lock();
     try {
+      // Merge updates into state
       for (const [skillId, skillUpdates] of Object.entries(updates)) {
         const existing = (entry.params[skillId] ?? {}) as Record<string, unknown>;
         entry.params[skillId] = { ...existing, ...skillUpdates };
@@ -130,12 +148,59 @@ export default class Params extends BaseCommand {
       state.dresses[args.id] = entry;
       await this.stateManager.save(state);
 
+      // Re-compile affected bundled skills with new params
+      let recompiled = false;
+      try {
+        const registry = createRegistryProvider(process.cwd(), this.clawtiquePaths.cache);
+        const dress = await registry.getDressJson(args.id);
+        const autoVars = buildAutoVars(dress);
+        const affectedSkillIds = Object.keys(updates);
+
+        for (const skillId of affectedSkillIds) {
+          const skillDef = dress.skills[skillId];
+          if (!skillDef || skillDef.source === 'clawhub') continue;
+
+          const rawContent = await registry.getSkillContent(args.id, skillId);
+          const mergedParams = (entry.params[skillId] ?? {}) as Record<string, unknown>;
+          const injectionVars: Record<string, string> = {
+            ...autoVars,
+            'skill.name': skillDef.name,
+            'skill.description': skillDef.description,
+          };
+          for (const [key, value] of Object.entries(mergedParams)) {
+            injectionVars[key] = Array.isArray(value) ? value.join(', ') : String(value);
+          }
+
+          const compiled = injectVars(rawContent, injectionVars);
+          const unresolved = compiled.match(/\{\{[^}]+\}\}/g);
+          if (unresolved) {
+            this.warn(
+              `Unresolved placeholders in skill "${skillId}": ${[...new Set(unresolved)].join(', ')}`,
+            );
+          }
+          await this.openclawDriver.skillCopyBundled(skillId, compiled);
+        }
+        recompiled = true;
+      } catch (err) {
+        this.warn(
+          'Could not re-compile skills (registry unavailable?).\n' +
+            '  To apply, run: clawtique undress ' +
+            args.id +
+            ' && clawtique dress ' +
+            args.id,
+        );
+      }
+
       const changedKeys = Object.entries(updates)
         .flatMap(([s, p]) => Object.keys(p).map((k) => `${s}.${k}`))
         .join(', ');
       await this.gitManager.commit('refactor', args.id, `update params: ${changedKeys}`);
 
-      this.log(`${chalk.green('✓')} Params updated.`);
+      if (recompiled) {
+        this.log(`${chalk.green('✓')} Params updated and skills re-compiled.`);
+      } else {
+        this.log(`${chalk.green('✓')} Params updated.`);
+      }
     } finally {
       await this.stateManager.unlock();
     }

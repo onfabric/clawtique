@@ -18,7 +18,10 @@
   ],
 
   "skills": {
-    "daily-pill": {}
+    "daily-pill": {
+      "name": "Daily pill",
+      "description": "Picks the most relevant bookmark for today based on current projects and interests."
+    }
   },
 
   "workspace": {

@@ -52,7 +52,7 @@ export interface CompileInput {
 
 const AUTO_VAR_PREFIXES = ['workspace.'];
 
-function buildAutoVars(dress: DressJson): Record<string, string> {
+export function buildAutoVars(dress: DressJson): Record<string, string> {
   const vars: Record<string, string> = {
     'dress.id': dress.id,
     'dress.name': dress.name,
@@ -73,6 +73,8 @@ function isAutoVar(name: string): boolean {
     'memory.dailySections',
     'memory.reads',
     'workspace.root',
+    'skill.name',
+    'skill.description',
   ]);
   if (autoVarNames.has(name)) return true;
   return AUTO_VAR_PREFIXES.some((p) => name.startsWith(p));
@@ -88,7 +90,7 @@ function extractPlaceholders(content: string): Set<string> {
   return new Set(matches.map((m) => m.slice(2, -2).trim()));
 }
 
-function injectVars(content: string, vars: Record<string, string>): string {
+export function injectVars(content: string, vars: Record<string, string>): string {
   let result = content;
   for (const [key, value] of Object.entries(vars)) {
     result = result.replaceAll(`{{${key}}}`, value);
@@ -202,9 +204,13 @@ export function compileDress(input: CompileInput): CompiledDress {
       throw new Error(`Missing content for bundled skill "${skillId}"`);
     }
 
-    // Build injection vars: auto-vars + skill params
+    // Build injection vars: auto-vars + per-skill vars + skill params
     const paramValues = skillParams[skillId] ?? {};
-    const injectionVars: Record<string, string> = { ...autoVars };
+    const injectionVars: Record<string, string> = {
+      ...autoVars,
+      'skill.name': skillDef.name,
+      'skill.description': skillDef.description,
+    };
     for (const [key, value] of Object.entries(paramValues)) {
       injectionVars[key] = Array.isArray(value) ? value.join(', ') : String(value);
     }

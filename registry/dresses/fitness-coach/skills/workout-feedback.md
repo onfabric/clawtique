@@ -1,6 +1,6 @@
 ---
-name: workout-feedback
-description: Collect post-workout feedback from the user. Use when the post-workout check-in cron fires.
+name: {{skill.name}}
+description: {{skill.description}}
 ---
 
 # Post-Workout Feedback

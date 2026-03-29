@@ -95,7 +95,55 @@ export default class Dress extends BaseCommand {
       this.error(`Dress "${dressId}" not found in the registry.`);
     }
 
-    this.log(`\n  ${chalk.bold(dress.name)} ${chalk.dim(`v${dress.version}`)}\n`);
+    this.log(`\n  ${chalk.bold(dress.name)} ${chalk.dim(`v${dress.version}`)}`);
+    if (dress.description) {
+      this.log(`  ${chalk.dim(dress.description)}`);
+    }
+    this.log('');
+
+    // Dress breakdown
+    const skillEntries = Object.entries(dress.skills);
+    if (skillEntries.length > 0) {
+      this.log(chalk.bold('  Skills:'));
+      for (const [id, skillDef] of skillEntries) {
+        const source = skillDef.source === 'clawhub' ? ' (ClawHub)' : '';
+        this.log(`    ${chalk.cyan(skillDef.name)}${chalk.dim(source)} — ${skillDef.description}`);
+      }
+      this.log('');
+    }
+
+    if (dress.crons.length > 0) {
+      this.log(chalk.bold('  Crons:'));
+      for (const cron of dress.crons) {
+        const time = cron.defaults.time ?? '—';
+        const days = cron.defaults.days ? cron.defaults.days.join(', ') : 'every day';
+        this.log(`    ${cron.name} → ${chalk.cyan(cron.skill)} ${chalk.dim(`(default: ${time}, ${days})`)}`);
+      }
+      this.log('');
+    }
+
+    const extras: string[] = [];
+    if (dress.memory.dailySections.length > 0) {
+      extras.push(`Memory: ${dress.memory.dailySections.join(', ')}`);
+    }
+    if (dress.heartbeat.length > 0) {
+      extras.push(`Heartbeat: ${dress.heartbeat.length} rule(s)`);
+    }
+    if (Object.keys(dress.workspace).length > 0) {
+      extras.push(`Workspace: ${Object.keys(dress.workspace).length} file(s)`);
+    }
+    if (dress.requires.plugins.length > 0) {
+      extras.push(`Plugins: ${dress.requires.plugins.map((p) => p.id).join(', ')}`);
+    }
+    if (dress.requires.lingerie.length > 0) {
+      extras.push(`Requires: ${dress.requires.lingerie.join(', ')}`);
+    }
+    if (extras.length > 0) {
+      for (const extra of extras) {
+        this.log(`  ${chalk.dim(extra)}`);
+      }
+      this.log('');
+    }
 
     // Check if already dressed
     if (this.stateManager.isDressed(state, dress.id)) {
@@ -234,19 +282,29 @@ export default class Dress extends BaseCommand {
       const paramEntries = Object.entries(skillDef.params);
       if (paramEntries.length === 0) continue;
 
-      this.log(chalk.bold(`  Params for skill "${skillId}":\n`));
+      const relatedCrons = dress.crons.filter((c) => c.skill === skillId);
+      const cronInfo =
+        relatedCrons.length > 0
+          ? ` ${chalk.dim(`(used by: ${relatedCrons.map((c) => c.name).join(', ')})`)}`
+          : '';
+      this.log(`  ${chalk.bold(skillDef.name)}${cronInfo}`);
+      this.log(`  ${chalk.dim(skillDef.description)}\n`);
+
       const values: Record<string, unknown> = {};
 
       for (const [paramName, paramDef] of paramEntries) {
+        this.log(
+          `    ${chalk.cyan(paramName)} ${chalk.dim(`(${paramDef.type}, default: ${JSON.stringify(paramDef.default)})`)}`,
+        );
         if (paramDef.type === 'number') {
           const raw = await input({
-            message: `  ${paramDef.description}`,
+            message: `    ${paramDef.description}`,
             default: String(paramDef.default),
           });
           values[paramName] = Number(raw);
         } else if (paramDef.type === 'string[]') {
           const raw = await input({
-            message: `  ${paramDef.description}`,
+            message: `    ${paramDef.description}`,
             default: (paramDef.default as string[]).join(', '),
           });
           values[paramName] = raw
@@ -255,7 +313,7 @@ export default class Dress extends BaseCommand {
             .filter(Boolean);
         } else {
           const raw = await input({
-            message: `  ${paramDef.description}`,
+            message: `    ${paramDef.description}`,
             default: String(paramDef.default),
           });
           values[paramName] = raw;

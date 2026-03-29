@@ -19,6 +19,8 @@
 
   "skills": {
     "tech-bro-digest": {
+      "name": "Tech digest",
+      "description": "Searches configured news sources and compiles a morning digest of the most relevant stories.",
       "params": {
         "sources": {
           "description": "News sources to search (comma-separated)",

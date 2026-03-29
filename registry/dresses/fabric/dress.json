@@ -28,8 +28,14 @@
   ],
 
   "skills": {
-    "user-check-in": {},
-    "deep-user-profile": {}
+    "user-check-in": {
+      "name": "User check-in",
+      "description": "Proactively checks in with the user to gather context and build rapport."
+    },
+    "deep-user-profile": {
+      "name": "Deep user profile",
+      "description": "Analyses recent conversations to build and update a detailed user profile in Fabric."
+    }
   },
 
   "memory": { "dailySections": ["Fabric"] },

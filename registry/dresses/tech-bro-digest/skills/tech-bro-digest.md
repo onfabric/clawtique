@@ -1,6 +1,6 @@
 ---
-name: tech-bro-digest
-description: Daily digest of tech news from configured sources and topics.
+name: {{skill.name}}
+description: {{skill.description}}
 ---
 
 # Tech Digest
