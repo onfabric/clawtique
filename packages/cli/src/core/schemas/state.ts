@@ -111,7 +111,7 @@ export const clawtiqueConfigSchema = z.object({
     .object({
       name: z.string().min(1),
     })
-    .default({ name: 'there' }),
+    .default({ name: 'the user' }),
 });
 
 // ---------------------------------------------------------------------------
