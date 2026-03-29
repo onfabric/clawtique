@@ -87,5 +87,6 @@
       "description": "WhatsApp channel plugin via waclaw proxy — shared across dresses that need WhatsApp messaging.",
       "path": "lingerie/waclaw"
     }
-  }
+  },
+  "personalities": {}
 }
