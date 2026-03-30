@@ -1,5 +1,5 @@
-import type { SkillTrigger } from '#core/schemas/index.ts';
 import type { ResolvedDress } from '#core/schema.ts';
+import type { SkillTrigger, SkillTrigger } from '#core/schemas/index.ts';
 
 /**
  * Generate a DRESSCODE.md from a resolved dress definition.

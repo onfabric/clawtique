@@ -32,12 +32,7 @@ const LINGERIE_DIR = join(REGISTRY_DIR, 'lingerie');
 const PERSONALITIES_DIR = join(REGISTRY_DIR, 'personalities');
 
 // Auto-vars injected by the CLI — not declared as params
-const AUTO_VARS = new Set([
-  'dress.id',
-  'dress.name',
-  'memory.dailySection',
-  'workspace.root',
-]);
+const AUTO_VARS = new Set(['dress.id', 'dress.name', 'memory.dailySection', 'workspace.root']);
 const AUTO_VAR_PREFIXES = ['workspace.'];
 
 function isAutoVar(name: string): boolean {
@@ -104,9 +99,13 @@ for (const dir of dressDirs) {
     const trigger = skillDef.trigger;
     if (trigger.type === 'cron') {
       if (!cronIds.has(trigger.cronId)) {
-        error(`skill "${skillId}" has trigger.cronId "${trigger.cronId}" which does not match any cron`);
+        error(
+          `skill "${skillId}" has trigger.cronId "${trigger.cronId}" which does not match any cron`,
+        );
       } else if (boundCrons.has(trigger.cronId)) {
-        error(`cron "${trigger.cronId}" is bound to both "${boundCrons.get(trigger.cronId)}" and "${skillId}"`);
+        error(
+          `cron "${trigger.cronId}" is bound to both "${boundCrons.get(trigger.cronId)}" and "${skillId}"`,
+        );
       } else {
         boundCrons.set(trigger.cronId, skillId);
       }

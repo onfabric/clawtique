@@ -1,4 +1,10 @@
-import type { ClawtiqueConfig, DressJson, PersonalityFile, SkillTrigger, Weekday } from '#core/index.ts';
+import type {
+  ClawtiqueConfig,
+  DressJson,
+  PersonalityFile,
+  SkillTrigger,
+  Weekday,
+} from '#core/index.ts';
 import { cronFromTime, PERSONALITY_FILES } from '#core/index.ts';
 
 // ---------------------------------------------------------------------------
@@ -89,12 +95,7 @@ export function buildAutoVars(dress: DressJson): Record<string, string> {
 }
 
 function isAutoVar(name: string): boolean {
-  const autoVarNames = new Set([
-    'dress.id',
-    'dress.name',
-    'memory.dailySection',
-    'workspace.root',
-  ]);
+  const autoVarNames = new Set(['dress.id', 'dress.name', 'memory.dailySection', 'workspace.root']);
   if (autoVarNames.has(name)) return true;
   return AUTO_VAR_PREFIXES.some((p) => name.startsWith(p));
 }

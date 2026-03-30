@@ -7,9 +7,7 @@
       "version": "1.0.0",
       "description": "Sleep coaching powered by Oura Ring — morning reports and evening wind-down advice.",
       "requires": {
-        "lingerie": [
-          "waclaw"
-        ]
+        "lingerie": ["waclaw"]
       },
       "path": "dresses/sleeping-coach"
     },
@@ -18,9 +16,7 @@
       "version": "2.0.0",
       "description": "Sends workout schedule and collects post-training feedback.",
       "requires": {
-        "lingerie": [
-          "waclaw"
-        ]
+        "lingerie": ["waclaw"]
       },
       "path": "dresses/fitness-coach"
     },
@@ -29,9 +25,7 @@
       "version": "1.0.0",
       "description": "End-of-day reflection — capture what mattered and set tomorrow's intentions.",
       "requires": {
-        "lingerie": [
-          "waclaw"
-        ]
+        "lingerie": ["waclaw"]
       },
       "path": "dresses/daily-reflection"
     },
@@ -40,9 +34,7 @@
       "version": "1.0.0",
       "description": "Daily digest of tech news from configurable sources and topics.",
       "requires": {
-        "lingerie": [
-          "waclaw"
-        ]
+        "lingerie": ["waclaw"]
       },
       "path": "dresses/tech-bro-digest"
     },
@@ -51,9 +43,7 @@
       "version": "1.0.0",
       "description": "Portable AI memory powered by Fabric — proactive check-ins, memory retrieval, and user profiling.",
       "requires": {
-        "lingerie": [
-          "waclaw"
-        ]
+        "lingerie": ["waclaw"]
       },
       "path": "dresses/fabric"
     },
@@ -62,9 +52,7 @@
       "version": "1.0.0",
       "description": "Save and manage bookmarks — get one relevant link delivered daily.",
       "requires": {
-        "lingerie": [
-          "waclaw"
-        ]
+        "lingerie": ["waclaw"]
       },
       "path": "dresses/url-bookmark"
     }

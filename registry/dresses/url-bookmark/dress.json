@@ -30,7 +30,5 @@
 
   "dailySection": "Bookmarks",
 
-  "workspace": [
-    "url-bookmark/bookmarks.md"
-  ]
+  "workspace": ["url-bookmark/bookmarks.md"]
 }
