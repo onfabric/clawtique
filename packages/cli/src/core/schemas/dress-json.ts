@@ -149,7 +149,7 @@ export const dressJsonSchema = z.object({
   skills: z.record(z.string(), skillJsonSchema).default({}),
   secrets: z.record(z.string(), secretDefSchema).default({}),
 
-  dailySection: z.string().optional(),
+  dailyMemorySection: z.string().optional(),
   workspace: z.array(z.string()).default([]),
 });
 

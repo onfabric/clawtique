@@ -17,7 +17,7 @@ Pick one bookmark from the user's reading list — the one that is most relevant
 ## Step 2: Pick the best bookmark
 
 1. Read `{{workspace.root}}/bookmarks.md`
-2. Check recent daily memory files under **## {{memory.dailySection}}** to see which bookmarks were sent recently
+2. Check recent daily memory files under **## {{memory.dailyMemorySection}}** to see which bookmarks were sent recently
 3. For each bookmark not recently sent:
    - Score by relevance to the user's *current* context — not general interests, but what's top of mind right now
    - Prefer bookmarks never sent over those already featured
@@ -36,5 +36,5 @@ Pick one bookmark from the user's reading list — the one that is most relevant
 
 ## Step 4: Update state
 
-- In today's daily memory under **## {{memory.dailySection}}**: log which bookmark was sent (or that it was skipped and why)
+- In today's daily memory under **## {{memory.dailyMemorySection}}**: log which bookmark was sent (or that it was skipped and why)
 - In `{{workspace.root}}/bookmarks.md`: update `last_sent` date and increment `times_sent` for the bookmark

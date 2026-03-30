@@ -28,7 +28,7 @@
     }
   },
 
-  "dailySection": "Bookmarks",
+  "dailyMemorySection": "Bookmarks",
 
   "workspace": ["url-bookmark/bookmarks.md"]
 }

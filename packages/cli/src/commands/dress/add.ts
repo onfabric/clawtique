@@ -189,8 +189,8 @@ export default class DressAdd extends BaseCommand {
     }
 
     const extras: string[] = [];
-    if (dress.dailySection) {
-      extras.push(`Daily section: ${dress.dailySection}`);
+    if (dress.dailyMemorySection) {
+      extras.push(`Daily memory section: ${dress.dailyMemorySection}`);
     }
     if (dress.workspace.length > 0) {
       extras.push(`Workspace: ${dress.workspace.length} file(s)`);
@@ -439,8 +439,8 @@ export default class DressAdd extends BaseCommand {
         `  ${chalk.green('+')} cron: ${c.name} ${chalk.dim(`(${c.schedule})`)} → skill: ${chalk.cyan(c.skill)}`,
       );
     }
-    if (compiled.dailySection) {
-      this.log(`  ${chalk.green('+')} daily section: ${compiled.dailySection}`);
+    if (compiled.dailyMemorySection) {
+      this.log(`  ${chalk.green('+')} Daily memory section: ${compiled.dailyMemorySection}`);
     }
     const hbSkills = Object.entries(compiled.skillTriggers).filter(
       ([, t]) => t.type === 'heartbeat',
@@ -690,7 +690,7 @@ export default class DressAdd extends BaseCommand {
                   installedSkills,
                   plugins: compiled.plugins.map((p) => p.id),
                   installedPlugins,
-                  memorySections: compiled.dailySection ? [compiled.dailySection] : [],
+                  memorySections: compiled.dailyMemorySection ? [compiled.dailyMemorySection] : [],
                   files: appliedFiles,
                   heartbeatSkills: Object.entries(compiled.skillTriggers)
                     .filter(([, t]) => t.type === 'heartbeat')
@@ -718,7 +718,7 @@ export default class DressAdd extends BaseCommand {
         compiled.crons.length > 0
           ? `crons: ${compiled.crons.map((c) => `${c.name} → ${c.skill}`).join(', ')}`
           : '',
-        compiled.dailySection ? `daily section: ${compiled.dailySection}` : '',
+        compiled.dailyMemorySection ? `Daily memory section: ${compiled.dailyMemorySection}` : '',
       ]
         .filter(Boolean)
         .join('\n');
@@ -865,7 +865,7 @@ export default class DressAdd extends BaseCommand {
         skill: c.skill,
         channel: c.channel === 'last' ? undefined : c.channel,
       })),
-      dailySection: compiled.dailySection,
+      dailyMemorySection: compiled.dailyMemorySection,
       files: { skills: {}, templates: [] },
       workspace: compiled.workspace,
     };
@@ -894,7 +894,7 @@ export default class DressAdd extends BaseCommand {
           skill: c.skill ?? '',
         };
       }),
-      dailySection: entry.applied.memorySections[0],
+      dailyMemorySection: entry.applied.memorySections[0],
       files: { skills: {}, templates: [] },
       workspace: [],
     };
@@ -924,7 +924,9 @@ export default class DressAdd extends BaseCommand {
     }
 
     const lines = ['# Active Dresses\n'];
-    lines.push('Read each DRESSCODE.md for details on skills, crons, and memory conventions.\n');
+    lines.push(
+      'You MUST read each DRESSCODE.md listed below. They define your skills, schedules, daily memory sections, and workspace files.\n',
+    );
 
     // User skill routing table
     if (allUserSkills.length > 0) {

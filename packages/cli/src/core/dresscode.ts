@@ -76,10 +76,10 @@ export function generateDresscode(
   }
 
   // Daily memory section
-  if (dress.dailySection) {
+  if (dress.dailyMemorySection) {
     lines.push('## Daily Memory');
     lines.push('');
-    lines.push(`- Owns section: **## ${dress.dailySection}** in daily notes`);
+    lines.push(`- Owns section: **## ${dress.dailyMemorySection}** in daily memory`);
     lines.push('');
   }
 

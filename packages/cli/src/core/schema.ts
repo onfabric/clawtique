@@ -107,7 +107,7 @@ export const resolvedDressSchema = z.object({
   }),
   secrets: z.record(z.string(), secretDefSchema).default({}),
   crons: z.array(cronDefSchema).default([]),
-  dailySection: z.string().optional(),
+  dailyMemorySection: z.string().optional(),
   files: dressFilesSchema.default({ skills: {}, templates: [] }),
   // Workspace files: paths relative to workspace dir
   // Created on dress if missing, preserved on undress (user data)

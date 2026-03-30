@@ -62,7 +62,7 @@ export interface CompiledDress {
   plugins: DressJson['requires']['plugins'];
   lingerie: string[];
 
-  dailySection: string | undefined;
+  dailyMemorySection: string | undefined;
   workspace: string[];
   secrets: DressJson['secrets'];
 }
@@ -85,7 +85,7 @@ export function buildAutoVars(dress: DressJson): Record<string, string> {
   const vars: Record<string, string> = {
     'dress.id': dress.id,
     'dress.name': dress.name,
-    'memory.dailySection': dress.dailySection ?? '',
+    'memory.dailyMemorySection': dress.dailyMemorySection ?? '',
     'workspace.root': `~/.openclaw/workspace/${dress.id}`,
   };
   for (const wsPath of dress.workspace) {
@@ -95,7 +95,7 @@ export function buildAutoVars(dress: DressJson): Record<string, string> {
 }
 
 function isAutoVar(name: string): boolean {
-  const autoVarNames = new Set(['dress.id', 'dress.name', 'memory.dailySection', 'workspace.root']);
+  const autoVarNames = new Set(['dress.id', 'dress.name', 'memory.dailyMemorySection', 'workspace.root']);
   if (autoVarNames.has(name)) return true;
   return AUTO_VAR_PREFIXES.some((p) => name.startsWith(p));
 }
@@ -294,7 +294,7 @@ export function compileDress(input: CompileInput): CompiledDress {
     plugins: dress.requires.plugins,
     lingerie: dress.requires.lingerie,
 
-    dailySection: dress.dailySection,
+    dailyMemorySection: dress.dailyMemorySection,
     workspace: dress.workspace,
     secrets: dress.secrets,
   };

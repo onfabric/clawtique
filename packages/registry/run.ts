@@ -32,7 +32,7 @@ const LINGERIE_DIR = join(REGISTRY_DIR, 'lingerie');
 const PERSONALITIES_DIR = join(REGISTRY_DIR, 'personalities');
 
 // Auto-vars injected by the CLI — not declared as params
-const AUTO_VARS = new Set(['dress.id', 'dress.name', 'memory.dailySection', 'workspace.root']);
+const AUTO_VARS = new Set(['dress.id', 'dress.name', 'memory.dailyMemorySection', 'workspace.root']);
 const AUTO_VAR_PREFIXES = ['workspace.'];
 
 function isAutoVar(name: string): boolean {
