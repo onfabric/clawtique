@@ -2,7 +2,7 @@ import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { checkbox, confirm, input, select } from '@inquirer/prompts';
+import { checkbox, confirm, input, search, select } from '@inquirer/prompts';
 import { Args, Flags } from '@oclif/core';
 import chalk from 'chalk';
 import { Listr } from 'listr2';
@@ -18,6 +18,7 @@ import {
   type PluginDef,
   type ResolvedDress,
   type StateFile,
+  formatUtcOffset,
   wrapSection,
 } from '#core/index.ts';
 import {
@@ -255,12 +256,23 @@ export default class DressAdd extends BaseCommand {
     // Timezone (once, saved to config)
     let timezone = config.timezone ?? 'UTC';
     if (!config.timezone || config.timezone === 'UTC') {
-      const tz = await input({
-        message: 'Your timezone (IANA format)',
-        default: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+      const sorted = Intl.supportedValuesOf('timeZone');
+      const pivot = sorted.indexOf('Europe/London');
+      const allTimezones = pivot > 0 ? [...sorted.slice(pivot), ...sorted.slice(0, pivot)] : sorted;
+
+      const tz = await search({
+        message: 'Search for your timezone',
+        source: (term) => {
+          const q = (term ?? '').toLowerCase();
+          if (!q) return allTimezones.map((v) => ({ name: `${v} (${formatUtcOffset(v)})`, value: v }));
+          return allTimezones
+            .filter((v) => v.toLowerCase().includes(q))
+            .map((v) => ({ name: `${v} (${formatUtcOffset(v)})`, value: v }));
+        },
       });
+
       timezone = tz;
-      // Save timezone to config for future dresses
+      this.log(`  ${chalk.dim(`Using ${timezone} (${formatUtcOffset(timezone)})`)}`);
       const configData = JSON.parse(await readFile(this.clawtiquePaths.config, 'utf-8'));
       configData.timezone = timezone;
       await writeFile(this.clawtiquePaths.config, `${JSON.stringify(configData, null, 2)}\n`);

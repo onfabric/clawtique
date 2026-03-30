@@ -95,6 +95,25 @@ export function cronFromTime(time: string, days: DayName[], timezone: string = '
 }
 
 /**
+ * Return a human-readable UTC offset string for a timezone, e.g. "UTC+1" or "UTC-5:30".
+ */
+export function formatUtcOffset(timezone: string): string {
+  if (timezone === 'UTC') return 'UTC+0';
+
+  const now = new Date();
+  const utcDate = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
+  const tzDate = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
+  const offsetMinutes = Math.round((tzDate.getTime() - utcDate.getTime()) / 60_000);
+
+  const sign = offsetMinutes >= 0 ? '+' : '-';
+  const absMinutes = Math.abs(offsetMinutes);
+  const h = Math.floor(absMinutes / 60);
+  const m = absMinutes % 60;
+
+  return m === 0 ? `UTC${sign}${h}` : `UTC${sign}${h}:${String(m).padStart(2, '0')}`;
+}
+
+/**
  * Add hours to a time string, returning a new "HH:MM" string.
  * Wraps around midnight if needed.
  */

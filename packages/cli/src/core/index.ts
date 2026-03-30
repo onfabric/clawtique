@@ -3,7 +3,7 @@
 // AGENTS.md reference injection
 export { ensureDressesReference, INITIAL_DRESSES_MD } from '#core/agents-md.ts';
 // Cron utilities
-export { addHours, cronFromTime } from '#core/cron-utils.ts';
+export { addHours, cronFromTime, formatUtcOffset } from '#core/cron-utils.ts';
 // DRESSCODE generation
 export { generateDresscode } from '#core/dresscode.ts';
 // Driver interface
