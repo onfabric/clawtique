@@ -272,6 +272,7 @@ export default class DressAdd extends BaseCommand {
       });
 
       timezone = tz;
+      // Save timezone to config for future dresses
       this.log(`  ${chalk.dim(`Using ${timezone} (${formatUtcOffset(timezone)})`)}`);
       const configData = JSON.parse(await readFile(this.clawtiquePaths.config, 'utf-8'));
       configData.timezone = timezone;
