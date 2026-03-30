@@ -49,24 +49,3 @@ AGENTS.md (always loaded)
 ### Lingerie
 
 Some dresses need shared plugins — like a messaging channel. These are called **lingerie**. They're installed automatically when a dress requires them and only removed when nothing depends on them.
-
-## CLI
-
-| Command | Description |
-|---------|-------------|
-| `clawtique init` | Initialize clawtique for an OpenClaw instance |
-| `clawtique dress add <id>` | Install and activate a dress |
-| `clawtique dress remove <id>` | Deactivate a dress, keep its data |
-| `clawtique dress` | List dresses interactively |
-| `clawtique dress params <id>` | View or update dress parameters |
-| `clawtique personality set <id>` | Apply a personality |
-| `clawtique status` | Show active dresses and components |
-| `clawtique diff` | Show applied vs current OpenClaw state |
-| `clawtique doctor` | Verify all active dresses are healthy |
-| `clawtique log` | History of operations |
-| `clawtique rollback` | Undo the last operation |
-| `clawtique lingerie` | List lingerie interactively |
-| `clawtique lingerie add <id>` | Install lingerie independently |
-| `clawtique lingerie remove <id>` | Remove unused lingerie |
-
-Mutating commands support `--dry-run`.
