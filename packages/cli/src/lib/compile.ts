@@ -95,7 +95,12 @@ export function buildAutoVars(dress: DressJson): Record<string, string> {
 }
 
 function isAutoVar(name: string): boolean {
-  const autoVarNames = new Set(['dress.id', 'dress.name', 'memory.dailyMemorySection', 'workspace.root']);
+  const autoVarNames = new Set([
+    'dress.id',
+    'dress.name',
+    'memory.dailyMemorySection',
+    'workspace.root',
+  ]);
   if (autoVarNames.has(name)) return true;
   return AUTO_VAR_PREFIXES.some((p) => name.startsWith(p));
 }
