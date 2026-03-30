@@ -3,8 +3,8 @@
 ## Development setup
 
 ```bash
-git clone <repository-url>
-cd <repository-name>
+git clone https://github.com/onfabric/clawtique
+cd clawtique
 bun install
 ```
 
