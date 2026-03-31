@@ -60,8 +60,9 @@ function toUtcTime(
       dayShift,
     };
   } catch {
-    // If timezone is not recognized, assume UTC
-    return { hours, minutes, dayShift: 0 };
+    throw new Error(
+      `Unknown timezone "${timezone}". Use a valid IANA timezone (e.g. "Europe/London", "America/New_York").`,
+    );
   }
 }
 
@@ -69,8 +70,16 @@ function toUtcTime(
  * Build a cron expression from a local time, days, and timezone.
  *
  * Returns a UTC cron expression string (5-field).
+ *
+ * NOTE: The UTC offset is computed at call time. If the timezone observes DST,
+ * the cron will drift by ±1 hour after a DST transition. To correct this, re-add
+ * the dress or re-run the schedule after a clock change.
  */
 export function cronFromTime(time: string, days: DayName[], timezone: string = 'UTC'): string {
+  if (days.length === 0) {
+    throw new Error('At least one day must be selected for a cron schedule.');
+  }
+
   const { hours, minutes } = parseTime(time);
   const utc = toUtcTime(hours, minutes, timezone);
 

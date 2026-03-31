@@ -1,5 +1,4 @@
-import { spawn } from 'node:child_process';
-import { confirm, input, select } from '@inquirer/prompts';
+import { confirm, select } from '@inquirer/prompts';
 import { Args, Flags } from '@oclif/core';
 import chalk from 'chalk';
 import { Listr } from 'listr2';
@@ -158,41 +157,7 @@ export default class LingerieAdd extends BaseCommand {
       await this.openclawDriver.pluginInstall(plugin.spec);
       installedPlugins.push(plugin.id);
 
-      if (plugin.setupNotes.length > 0) {
-        this.log('');
-        for (const note of plugin.setupNotes) {
-          this.log(`  ${chalk.cyan('→')} ${note}`);
-        }
-      }
-
-      if (plugin.setupCommand) {
-        this.log(`\n${chalk.bold(`Setting up ${plugin.id}...`)}\n`);
-        const [cmd, ...cmdArgs] = plugin.setupCommand.split(' ');
-        const exitCode = await new Promise<number>((resolve, reject) => {
-          const child = spawn(cmd!, cmdArgs, { stdio: 'inherit' });
-          child.on('close', (code: number) => resolve(code));
-          child.on('error', reject);
-        });
-        if (exitCode !== 0) {
-          this.error(`Lingerie plugin setup failed (exit code ${exitCode}).`);
-        }
-      } else {
-        const schema = await this.openclawDriver.pluginConfigSchema(plugin.id);
-        if (schema && Object.keys(schema.properties).length > 0) {
-          this.log(`\n${chalk.bold(`Configuring ${plugin.id}...`)}\n`);
-          for (const [key, prop] of Object.entries(schema.properties)) {
-            const isRequired = schema.required.includes(key);
-            const label = prop.description || key;
-            const suffix = isRequired ? '' : ' (optional)';
-            const value = await input({ message: `${label}${suffix}:` });
-            if (value) {
-              await this.openclawDriver.configSet(`${schema.configPrefix}.${key}`, value);
-            } else if (isRequired) {
-              this.error(`Required config "${key}" was not provided.`);
-            }
-          }
-        }
-      }
+      await this.setupPlugin(plugin, true);
     }
 
     // Restart gateway if we installed plugins

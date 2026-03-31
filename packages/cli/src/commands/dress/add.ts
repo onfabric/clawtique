@@ -1,4 +1,3 @@
-import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -21,9 +20,9 @@ import {
   wrapSection,
 } from '#core/index.ts';
 import {
-  type CompiledDress,
   type CronScheduleChoice,
   compileDress,
+  compiledToResolved,
   parseSkillMeta,
   type SkillMeta,
   validateDress,
@@ -57,6 +56,12 @@ export default class DressAdd extends BaseCommand {
       char: 'y',
       description: 'Skip confirmation prompts',
       default: false,
+    }),
+    schedules: Flags.string({
+      description: 'Cron schedules as JSON: {"cronId": {"time":"HH:MM","days":["mon",...]}}',
+    }),
+    params: Flags.string({
+      description: 'Skill params as JSON: {"skillId": {"paramName": "value"}}',
     }),
   };
 
@@ -252,107 +257,145 @@ export default class DressAdd extends BaseCommand {
     // Phase: Prompts — collect schedule + skill params
     // -----------------------------------------------------------------------
 
-    // Cron schedules
+    // Cron schedules — from flag or interactive prompts
+    const presetSchedules = flags.schedules
+      ? (JSON.parse(flags.schedules) as Record<string, CronScheduleChoice>)
+      : undefined;
+
     const cronSchedules: Record<string, CronScheduleChoice> = {};
-    if (dress.crons.length > 0) {
-      this.log(chalk.bold(`  Scheduling ${dress.crons.length} cron(s):\n`));
-    }
 
-    for (const cron of dress.crons) {
-      const defaultTime = cron.defaults.time ?? '09:00';
-      const defaultDays = cron.defaults.days ?? ALL_DAYS;
-
-      // Find the skill bound to this cron via trigger
-      const cronSkillId = Object.entries(dress.skills).find(
-        ([, s]) => s.trigger.type === 'cron' && s.trigger.cronId === cron.id,
-      )?.[0];
-      this.log(`  ${chalk.cyan(cron.name)}${cronSkillId ? ` → skill: ${cronSkillId}` : ''}`);
-
-      const time = await input({
-        message: `  Time (HH:MM)`,
-        default: defaultTime,
-        validate: (v) => /^\d{2}:\d{2}$/.test(v) || 'Use HH:MM format',
-      });
-
-      const days = (await checkbox({
-        message: `  Days`,
-        choices: ALL_DAYS.map((d) => ({
-          name: d,
-          value: d as Weekday,
-          checked: defaultDays.includes(d),
-        })),
-      })) as Weekday[];
-
-      if (days.length === 0) {
-        this.error('Must select at least one day.');
-      }
-
-      // Channel — auto-select if only one lingerie, prompt if multiple
-      let channel: string | undefined;
-      if (cron.channel) {
-        channel = cron.channel;
-      } else if (dress.requires.lingerie.length === 1) {
-        channel = dress.requires.lingerie[0];
-      } else if (dress.requires.lingerie.length > 1) {
-        channel = await select({
-          message: `  Channel`,
-          choices: dress.requires.lingerie.map((id) => ({ name: id, value: id })),
-        });
-      }
-
-      cronSchedules[cron.id] = { time, days, channel };
-      this.log('');
-    }
-
-    // Skill params
-    const skillParams: Record<string, Record<string, unknown>> = {};
-    for (const [skillId, skillDef] of Object.entries(dress.skills)) {
-      const paramEntries = Object.entries(skillDef.params);
-      if (paramEntries.length === 0) continue;
-
-      const meta = skillMetaMap.get(skillId);
-      const trigger = skillDef.trigger;
-      const relatedCron =
-        trigger.type === 'cron' ? dress.crons.find((c) => c.id === trigger.cronId) : undefined;
-      const cronInfo = relatedCron ? ` ${chalk.dim(`(used by: ${relatedCron.name})`)}` : '';
-      this.log(`  ${chalk.bold(meta?.name ?? skillId)}${cronInfo}`);
-      if (meta?.description) {
-        this.log(`  ${chalk.dim(meta.description)}`);
-      }
-      this.log('');
-
-      const values: Record<string, unknown> = {};
-
-      for (const [paramName, paramDef] of paramEntries) {
-        this.log(
-          `    ${chalk.cyan(paramName)} ${chalk.dim(`(${paramDef.type}, default: ${JSON.stringify(paramDef.default)})`)}`,
-        );
-        if (paramDef.type === 'number') {
-          const raw = await input({
-            message: `    ${paramDef.description}`,
-            default: String(paramDef.default),
-          });
-          values[paramName] = Number(raw);
-        } else if (paramDef.type === 'string[]') {
-          const raw = await input({
-            message: `    ${paramDef.description}`,
-            default: (paramDef.default as string[]).join(', '),
-          });
-          values[paramName] = raw
-            .split(',')
-            .map((s: string) => s.trim())
-            .filter(Boolean);
+    if (presetSchedules) {
+      // Non-interactive: validate that all crons have schedules
+      for (const cron of dress.crons) {
+        const preset = presetSchedules[cron.id];
+        if (!preset) {
+          // Fall back to dress defaults
+          const defaultTime = cron.defaults.time ?? '09:00';
+          const defaultDays = cron.defaults.days ?? ALL_DAYS;
+          let channel: string | undefined;
+          if (cron.channel) channel = cron.channel;
+          else if (dress.requires.lingerie.length === 1) channel = dress.requires.lingerie[0];
+          cronSchedules[cron.id] = { time: defaultTime, days: defaultDays, channel };
         } else {
-          const raw = await input({
-            message: `    ${paramDef.description}`,
-            default: String(paramDef.default),
-          });
-          values[paramName] = raw;
+          cronSchedules[cron.id] = preset;
         }
       }
+    } else if (dress.crons.length > 0) {
+      this.log(chalk.bold(`  Scheduling ${dress.crons.length} cron(s):\n`));
 
-      skillParams[skillId] = values;
-      this.log('');
+      for (const cron of dress.crons) {
+        const defaultTime = cron.defaults.time ?? '09:00';
+        const defaultDays = cron.defaults.days ?? ALL_DAYS;
+
+        const cronSkillId = Object.entries(dress.skills).find(
+          ([, s]) => s.trigger.type === 'cron' && s.trigger.cronId === cron.id,
+        )?.[0];
+        this.log(`  ${chalk.cyan(cron.name)}${cronSkillId ? ` → skill: ${cronSkillId}` : ''}`);
+
+        const time = await input({
+          message: `  Time (HH:MM)`,
+          default: defaultTime,
+          validate: (v) => /^\d{2}:\d{2}$/.test(v) || 'Use HH:MM format',
+        });
+
+        const days = (await checkbox({
+          message: `  Days`,
+          choices: ALL_DAYS.map((d) => ({
+            name: d,
+            value: d as Weekday,
+            checked: defaultDays.includes(d),
+          })),
+        })) as Weekday[];
+
+        if (days.length === 0) {
+          this.error('Must select at least one day.');
+        }
+
+        let channel: string | undefined;
+        if (cron.channel) {
+          channel = cron.channel;
+        } else if (dress.requires.lingerie.length === 1) {
+          channel = dress.requires.lingerie[0];
+        } else if (dress.requires.lingerie.length > 1) {
+          channel = await select({
+            message: `  Channel`,
+            choices: dress.requires.lingerie.map((id) => ({ name: id, value: id })),
+          });
+        }
+
+        cronSchedules[cron.id] = { time, days, channel };
+        this.log('');
+      }
+    }
+
+    // Skill params — from flag or interactive prompts
+    const presetParams = flags.params
+      ? (JSON.parse(flags.params) as Record<string, Record<string, unknown>>)
+      : undefined;
+
+    const skillParams: Record<string, Record<string, unknown>> = {};
+
+    if (presetParams) {
+      // Non-interactive: merge presets with defaults
+      for (const [skillId, skillDef] of Object.entries(dress.skills)) {
+        const paramEntries = Object.entries(skillDef.params);
+        if (paramEntries.length === 0) continue;
+        const preset = presetParams[skillId] ?? {};
+        const values: Record<string, unknown> = {};
+        for (const [paramName, paramDef] of paramEntries) {
+          values[paramName] = preset[paramName] ?? paramDef.default;
+        }
+        skillParams[skillId] = values;
+      }
+    } else {
+      for (const [skillId, skillDef] of Object.entries(dress.skills)) {
+        const paramEntries = Object.entries(skillDef.params);
+        if (paramEntries.length === 0) continue;
+
+        const meta = skillMetaMap.get(skillId);
+        const trigger = skillDef.trigger;
+        const relatedCron =
+          trigger.type === 'cron' ? dress.crons.find((c) => c.id === trigger.cronId) : undefined;
+        const cronInfo = relatedCron ? ` ${chalk.dim(`(used by: ${relatedCron.name})`)}` : '';
+        this.log(`  ${chalk.bold(meta?.name ?? skillId)}${cronInfo}`);
+        if (meta?.description) {
+          this.log(`  ${chalk.dim(meta.description)}`);
+        }
+        this.log('');
+
+        const values: Record<string, unknown> = {};
+
+        for (const [paramName, paramDef] of paramEntries) {
+          this.log(
+            `    ${chalk.cyan(paramName)} ${chalk.dim(`(${paramDef.type}, default: ${JSON.stringify(paramDef.default)})`)}`,
+          );
+          if (paramDef.type === 'number') {
+            const raw = await input({
+              message: `    ${paramDef.description}`,
+              default: String(paramDef.default),
+            });
+            values[paramName] = Number(raw);
+          } else if (paramDef.type === 'string[]') {
+            const raw = await input({
+              message: `    ${paramDef.description}`,
+              default: (paramDef.default as string[]).join(', '),
+            });
+            values[paramName] = raw
+              .split(',')
+              .map((s: string) => s.trim())
+              .filter(Boolean);
+          } else {
+            const raw = await input({
+              message: `    ${paramDef.description}`,
+              default: String(paramDef.default),
+            });
+            values[paramName] = raw;
+          }
+        }
+
+        skillParams[skillId] = values;
+        this.log('');
+      }
     }
 
     // -----------------------------------------------------------------------
@@ -375,7 +418,7 @@ export default class DressAdd extends BaseCommand {
     for (const [id, entry] of Object.entries(state.dresses)) {
       allDresses.set(id, this.reconstructResolved(id, entry));
     }
-    allDresses.set(dress.id, this.compiledToResolved(compiled));
+    allDresses.set(dress.id, compiledToResolved(compiled));
 
     const { state: desired, conflicts } = mergeDresses(allDresses);
 
@@ -507,50 +550,7 @@ export default class DressAdd extends BaseCommand {
 
         // Run plugin setup
         for (const plugin of pluginsToInstall) {
-          if (plugin.setupNotes.length > 0) {
-            this.log('');
-            for (const note of plugin.setupNotes) {
-              this.log(`  ${chalk.cyan('→')} ${note}`);
-            }
-          }
-
-          if (plugin.setupCommand) {
-            this.log(`\n${chalk.bold(`Setting up ${plugin.id}...`)}`);
-            this.log('');
-            const [cmd, ...cmdArgs] = plugin.setupCommand.split(' ');
-            const exitCode = await new Promise<number>((resolve, reject) => {
-              const child = spawn(cmd!, cmdArgs, { stdio: 'inherit' });
-              child.on('close', (code: number) => resolve(code));
-              child.on('error', reject);
-            });
-            if (exitCode !== 0) {
-              const cont = await confirm({
-                message: `Setup exited with code ${exitCode}. Did it complete successfully?`,
-                default: true,
-              });
-              if (!cont) {
-                throw new Error(
-                  `Plugin setup "${plugin.setupCommand}" failed (exit code ${exitCode})`,
-                );
-              }
-            }
-          } else {
-            const schema = await this.openclawDriver.pluginConfigSchema(plugin.id);
-            if (schema && Object.keys(schema.properties).length > 0) {
-              this.log(`\n${chalk.bold(`Configuring ${plugin.id}...`)}\n`);
-              for (const [key, prop] of Object.entries(schema.properties)) {
-                const isRequired = schema.required.includes(key);
-                const label = prop.description || key;
-                const suffix = isRequired ? '' : ' (optional)';
-                const value = await input({ message: `${label}${suffix}:` });
-                if (value) {
-                  await this.openclawDriver.configSet(`${schema.configPrefix}.${key}`, value);
-                } else if (isRequired) {
-                  this.error(`Required config "${key}" was not provided.`);
-                }
-              }
-            }
-          }
+          await this.setupPlugin(plugin);
         }
 
         // Restart gateway
@@ -634,7 +634,7 @@ export default class DressAdd extends BaseCommand {
             task: async () => {
               const dressDir = join(this.openclawPaths.dresses, dress.id);
               await mkdir(dressDir, { recursive: true });
-              const resolved = this.compiledToResolved(compiled);
+              const resolved = compiledToResolved(compiled);
               const dresscode = generateDresscode(resolved, compiled.skillTriggers);
               const dresscodePath = join(dressDir, 'DRESSCODE.md');
               await writeFile(dresscodePath, dresscode);
@@ -657,7 +657,7 @@ export default class DressAdd extends BaseCommand {
           {
             title: 'Updating DRESSES.md',
             task: async () => {
-              await this.updateDressesIndex(state, dress.id, compiled);
+              await this.updateDressesIndex(state, dress.id);
               // Ensure AGENTS.md references DRESSES.md (self-heal if missing)
               const workspaceDir = join(this.openclawPaths.root, 'workspace');
               await ensureDressesReference(workspaceDir);
@@ -674,6 +674,7 @@ export default class DressAdd extends BaseCommand {
                 params: Object.fromEntries(
                   Object.entries(skillParams).filter(([, v]) => Object.keys(v).length > 0),
                 ),
+                schedules: cronSchedules,
                 applied: {
                   crons: appliedCrons,
                   skills: allSkills,
@@ -690,6 +691,7 @@ export default class DressAdd extends BaseCommand {
                     .map(([id]) => id),
                   workspaceFiles: compiled.workspace.map((p) => `${dress.id}/${p}`),
                   lingerie: [...compiled.lingerie],
+                  dependsOnDresses: Object.keys(dress.requires.dresses),
                 },
               };
               state.dresses[dress.id] = entry;
@@ -703,8 +705,9 @@ export default class DressAdd extends BaseCommand {
       await tasks.run();
 
       // Git commit
+      const allSkills = [...compiled.bundledSkills.keys(), ...compiled.clawHubSkills];
       const body = [
-        allSkills().length > 0 ? `skills: ${allSkills().join(', ')}` : '',
+        allSkills.length > 0 ? `skills: ${allSkills.join(', ')}` : '',
         compiled.crons.length > 0
           ? `crons: ${compiled.crons.map((c) => `${c.name} → ${c.skill}`).join(', ')}`
           : '',
@@ -733,10 +736,6 @@ export default class DressAdd extends BaseCommand {
       await resetTask.run();
 
       this.log(`\n${chalk.green('✓')} Dressed in ${chalk.bold(dress.name)}!`);
-
-      function allSkills() {
-        return [...compiled.bundledSkills.keys(), ...compiled.clawHubSkills];
-      }
     } catch (err) {
       if (snapshot) {
         await this.gitManager.rollback(snapshot);
@@ -777,41 +776,7 @@ export default class DressAdd extends BaseCommand {
       await this.openclawDriver.pluginInstall(plugin.spec);
       installedPlugins.push(plugin.id);
 
-      if (plugin.setupNotes.length > 0) {
-        this.log('');
-        for (const note of plugin.setupNotes) {
-          this.log(`  ${chalk.cyan('→')} ${note}`);
-        }
-      }
-
-      if (plugin.setupCommand) {
-        this.log(`\n${chalk.bold(`Setting up ${plugin.id}...`)}\n`);
-        const [cmd, ...cmdArgs] = plugin.setupCommand.split(' ');
-        const exitCode = await new Promise<number>((resolve, reject) => {
-          const child = spawn(cmd!, cmdArgs, { stdio: 'inherit' });
-          child.on('close', (code: number) => resolve(code));
-          child.on('error', reject);
-        });
-        if (exitCode !== 0) {
-          this.error(`Lingerie plugin setup failed (exit code ${exitCode}).`);
-        }
-      } else {
-        const schema = await this.openclawDriver.pluginConfigSchema(plugin.id);
-        if (schema && Object.keys(schema.properties).length > 0) {
-          this.log(`\n${chalk.bold(`Configuring ${plugin.id}...`)}\n`);
-          for (const [key, prop] of Object.entries(schema.properties)) {
-            const isRequired = schema.required.includes(key);
-            const label = prop.description || key;
-            const suffix = isRequired ? '' : ' (optional)';
-            const value = await input({ message: `${label}${suffix}:` });
-            if (value) {
-              await this.openclawDriver.configSet(`${schema.configPrefix}.${key}`, value);
-            } else if (isRequired) {
-              this.error(`Required config "${key}" was not provided.`);
-            }
-          }
-        }
-      }
+      await this.setupPlugin(plugin, true);
     }
 
     // Restart gateway if we installed plugins
@@ -850,34 +815,6 @@ export default class DressAdd extends BaseCommand {
     this.log(`  ${chalk.green('✓')} Lingerie "${uw.name}" installed.\n`);
   }
 
-  private compiledToResolved(compiled: CompiledDress): ResolvedDress {
-    const allSkills = [...compiled.bundledSkills.keys(), ...compiled.clawHubSkills];
-    return {
-      id: compiled.id,
-      name: compiled.name,
-      version: compiled.version,
-      description: compiled.description,
-      requires: {
-        plugins: compiled.plugins,
-        skills: allSkills,
-        dresses: {},
-        optionalDresses: {},
-        lingerie: compiled.lingerie,
-      },
-      secrets: compiled.secrets,
-      crons: compiled.crons.map((c) => ({
-        id: c.id,
-        name: c.name,
-        schedule: c.schedule,
-        skill: c.skill,
-        channel: c.channel === 'last' ? undefined : c.channel,
-      })),
-      dailyMemorySection: compiled.dailyMemorySection,
-      files: { skills: {}, templates: [] },
-      workspace: compiled.workspace,
-    };
-  }
-
   private reconstructResolved(id: string, entry: DressEntry): ResolvedDress {
     return {
       id,
@@ -907,24 +844,16 @@ export default class DressAdd extends BaseCommand {
     };
   }
 
-  private async updateDressesIndex(
-    state: StateFile,
-    newDressId: string,
-    compiled: CompiledDress,
-  ): Promise<void> {
+  private async updateDressesIndex(state: StateFile, newDressId: string): Promise<void> {
     const lines = ['# Active Dresses\n'];
     lines.push(
       'You MUST read each DRESSCODE.md listed below. They define your skills, schedules, daily memory sections, and workspace files.\n',
     );
 
-    for (const [id] of Object.entries(state.dresses)) {
+    for (const id of [...Object.keys(state.dresses), newDressId]) {
       lines.push(`## ${id}`);
       lines.push(`DRESSCODE: ~/.openclaw/workspace/dresses/${id}/DRESSCODE.md\n`);
     }
-
-    lines.push(`## ${newDressId}`);
-    lines.push(compiled.description || compiled.name);
-    lines.push(`DRESSCODE: ~/.openclaw/workspace/dresses/${newDressId}/DRESSCODE.md\n`);
 
     await writeFile(this.openclawPaths.dressesIndex, lines.join('\n'));
   }

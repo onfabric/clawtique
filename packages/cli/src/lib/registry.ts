@@ -1,6 +1,6 @@
 import { existsSync, statSync } from 'node:fs';
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import {
   type DressJson,
   dressJsonSchema,
@@ -224,7 +224,7 @@ export class GitHubRegistryProvider implements RegistryProvider {
   private async writeCache(key: string, content: string): Promise<void> {
     if (!this.cacheDir) return;
     const path = join(this.cacheDir, key);
-    const dir = join(path, '..');
+    const dir = dirname(path);
     await mkdir(dir, { recursive: true });
     await writeFile(path, content, 'utf-8');
   }
@@ -235,8 +235,7 @@ export class GitHubRegistryProvider implements RegistryProvider {
 // ---------------------------------------------------------------------------
 
 /**
- * Detect whether a local registry/ directory exists.
- * Checks CWD first, then walks up looking for a registry/ with registry.json.
+ * Detect whether a local registry/ directory exists under cwd.
  */
 export function detectLocalRegistry(cwd: string): string | undefined {
   const candidate = join(cwd, 'registry');

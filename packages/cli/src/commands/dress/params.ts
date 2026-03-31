@@ -1,8 +1,9 @@
 import { Args, Flags } from '@oclif/core';
 import chalk from 'chalk';
 import { BaseCommand } from '#base.ts';
+import DressUpdate from '#commands/dress/update.ts';
 import type { DressJson } from '#core/index.ts';
-import { buildAutoVars, injectVars, parseSkillMeta, type SkillMeta } from '#lib/compile.ts';
+import { parseSkillMeta, type SkillMeta } from '#lib/compile.ts';
 import { createRegistryProvider, type RegistryProvider } from '#lib/registry.ts';
 
 export default class DressParams extends BaseCommand {
@@ -104,7 +105,7 @@ export default class DressParams extends BaseCommand {
       return;
     }
 
-    // Update mode — params are namespaced by skill: "skill.paramName=value"
+    // Update mode — convert --set syntax to JSON and delegate to dress update
     const updates: Record<string, Record<string, unknown>> = {};
     for (const s of flags.set) {
       const eqIdx = s.indexOf('=');
@@ -137,81 +138,12 @@ export default class DressParams extends BaseCommand {
       updates[skillId][paramKey] = value;
     }
 
-    // Show diff
-    this.log(chalk.bold('\nParam changes:\n'));
-    for (const [skillId, skillUpdates] of Object.entries(updates)) {
-      for (const [key, newVal] of Object.entries(skillUpdates)) {
-        const oldParams = (entry.params[skillId] ?? {}) as Record<string, unknown>;
-        const oldVal = oldParams[key];
-        this.log(
-          `  ${chalk.yellow('~')} ${skillId}.${key}: ${chalk.red(JSON.stringify(oldVal))} → ${chalk.green(JSON.stringify(newVal))}`,
-        );
-      }
-    }
-    this.log('');
+    this.log(
+      chalk.dim(
+        `\nDelegating to: clawtique dress update ${args.id} --params '${JSON.stringify(updates)}' --yes\n`,
+      ),
+    );
 
-    // Apply
-    await this.stateManager.lock();
-    try {
-      // Merge updates into state
-      for (const [skillId, skillUpdates] of Object.entries(updates)) {
-        const existing = (entry.params[skillId] ?? {}) as Record<string, unknown>;
-        entry.params[skillId] = { ...existing, ...skillUpdates };
-      }
-      state.dresses[args.id] = entry;
-      await this.stateManager.save(state);
-
-      // Re-compile affected bundled skills with new params
-      let recompiled = false;
-      try {
-        const registry = createRegistryProvider(process.cwd(), this.clawtiquePaths.cache);
-        const dress = await registry.getDressJson(args.id);
-        const autoVars = buildAutoVars(dress);
-        const affectedSkillIds = Object.keys(updates);
-
-        for (const skillId of affectedSkillIds) {
-          const skillDef = dress.skills[skillId];
-          if (!skillDef || skillDef.source === 'clawhub') continue;
-
-          const rawContent = await registry.getSkillContent(args.id, skillId);
-          const mergedParams = (entry.params[skillId] ?? {}) as Record<string, unknown>;
-          const injectionVars: Record<string, string> = { ...autoVars };
-          for (const [key, value] of Object.entries(mergedParams)) {
-            injectionVars[key] = Array.isArray(value) ? value.join(', ') : String(value);
-          }
-
-          const compiled = injectVars(rawContent, injectionVars);
-          const unresolved = compiled.match(/\{\{[^}]+\}\}/g);
-          if (unresolved) {
-            this.warn(
-              `Unresolved placeholders in skill "${skillId}": ${[...new Set(unresolved)].join(', ')}`,
-            );
-          }
-          await this.openclawDriver.skillCopyBundled(skillId, compiled);
-        }
-        recompiled = true;
-      } catch (_err) {
-        this.warn(
-          'Could not re-compile skills (registry unavailable?).\n' +
-            '  To apply, run: clawtique dress remove ' +
-            args.id +
-            ' && clawtique dress add ' +
-            args.id,
-        );
-      }
-
-      const changedKeys = Object.entries(updates)
-        .flatMap(([s, p]) => Object.keys(p).map((k) => `${s}.${k}`))
-        .join(', ');
-      await this.gitManager.commit('refactor', args.id, `update params: ${changedKeys}`);
-
-      if (recompiled) {
-        this.log(`${chalk.green('✓')} Params updated and skills re-compiled.`);
-      } else {
-        this.log(`${chalk.green('✓')} Params updated.`);
-      }
-    } finally {
-      await this.stateManager.unlock();
-    }
+    await DressUpdate.run([args.id, '--params', JSON.stringify(updates), '--yes']);
   }
 }

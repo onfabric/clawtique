@@ -15,7 +15,7 @@ export class GitManager {
     if (!existsSync(join(this.repoDir, '.git'))) {
       await this.git.init();
       await this.git.addConfig('user.name', 'clawtique');
-      await this.git.addConfig('user.email', 'clawtique@local');
+      await this.git.addConfig('user.email', 'noreply@clawtique.dev');
     }
   }
 
@@ -42,7 +42,7 @@ export class GitManager {
     await this.git.add('-A');
 
     const status = await this.git.status();
-    if (status.staged.length === 0 && status.created.length === 0) {
+    if (status.isClean()) {
       return ''; // Nothing to commit
     }
 

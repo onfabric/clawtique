@@ -161,6 +161,13 @@ export const appliedStateSchema = z.object({
   userSkills: z.array(z.string()).default([]),
   workspaceFiles: z.array(z.string()).default([]),
   lingerie: z.array(z.string()).default([]), // lingerie IDs this dress depends on
+  dependsOnDresses: z.array(z.string()).default([]), // dress IDs this dress depends on
+});
+
+export const cronScheduleSchema = z.object({
+  time: z.string(),
+  days: z.array(z.string()),
+  channel: z.string().optional(),
 });
 
 export const dressEntrySchema = z.object({
@@ -168,6 +175,7 @@ export const dressEntrySchema = z.object({
   version: semverSchema,
   installedAt: z.string().datetime(),
   params: z.record(z.string(), z.unknown()).default({}),
+  schedules: z.record(z.string(), cronScheduleSchema).default({}),
   applied: appliedStateSchema,
 });
 
