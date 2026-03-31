@@ -23,8 +23,6 @@ export default class RegistryUpdate extends BaseCommand {
 
     const dresses = Object.keys(index.dresses).length;
     const lingerie = Object.keys(index.lingerie).length;
-    this.log(
-      `${chalk.green('✓')} Registry updated (${dresses} dresses, ${lingerie} lingerie).`,
-    );
+    this.log(`${chalk.green('✓')} Registry updated (${dresses} dresses, ${lingerie} lingerie).`);
   }
 }
