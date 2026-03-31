@@ -690,6 +690,7 @@ export default class DressAdd extends BaseCommand {
                     .map(([id]) => id),
                   workspaceFiles: compiled.workspace.map((p) => `${dress.id}/${p}`),
                   lingerie: [...compiled.lingerie],
+                  dependsOnDresses: Object.keys(dress.requires.dresses),
                 },
               };
               state.dresses[dress.id] = entry;

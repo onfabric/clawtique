@@ -338,8 +338,15 @@ export default class DressRemove extends BaseCommand {
     }
   }
 
-  private findDependants(_state: StateFile, _dressId: string): string[] {
-    return [];
+  private findDependants(state: StateFile, dressId: string): string[] {
+    const dependants: string[] = [];
+    for (const [id, entry] of Object.entries(state.dresses)) {
+      if (id === dressId) continue;
+      if ((entry.applied.dependsOnDresses ?? []).includes(dressId)) {
+        dependants.push(id);
+      }
+    }
+    return dependants;
   }
 
   private collectOthersNeeds(

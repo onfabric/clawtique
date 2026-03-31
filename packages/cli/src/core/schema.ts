@@ -161,6 +161,7 @@ export const appliedStateSchema = z.object({
   userSkills: z.array(z.string()).default([]),
   workspaceFiles: z.array(z.string()).default([]),
   lingerie: z.array(z.string()).default([]), // lingerie IDs this dress depends on
+  dependsOnDresses: z.array(z.string()).default([]), // dress IDs this dress depends on
 });
 
 export const dressEntrySchema = z.object({
