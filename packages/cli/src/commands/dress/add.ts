@@ -779,6 +779,15 @@ export default class DressAdd extends BaseCommand {
       await this.setupPlugin(plugin, true);
     }
 
+    // Install bundled lingerie skills
+    const installedSkills: string[] = [];
+    for (const skillName of uw.skills) {
+      const content = await registry.getLingerieSkillContent(lingerieId, skillName);
+      await this.openclawDriver.skillCopyBundled(skillName, content);
+      installedSkills.push(skillName);
+      this.log(`  ${chalk.green('+')} skill: ${skillName}`);
+    }
+
     // Restart gateway if we installed plugins
     if (installedPlugins.length > 0) {
       const restartTask = new Listr(
@@ -810,6 +819,8 @@ export default class DressAdd extends BaseCommand {
         plugins: uw.plugins.map((p) => p.id),
         installedPlugins,
         configKeys: [],
+        skills: uw.skills,
+        installedSkills,
       },
     };
     await this.stateManager.save(state);

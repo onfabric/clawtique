@@ -42,6 +42,7 @@ export const lingerieJsonSchema = z.object({
   description: z.string().default(''),
   plugins: z.array(pluginDefSchema).default([]),
   configSetup: configSetupSchema.optional(),
+  skills: z.array(z.string()).default([]),
 });
 
 // ---------------------------------------------------------------------------
