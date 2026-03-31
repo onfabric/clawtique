@@ -660,8 +660,9 @@ export default class DressAdd extends BaseCommand {
       await tasks.run();
 
       // Git commit
+      const allSkills = [...compiled.bundledSkills.keys(), ...compiled.clawHubSkills];
       const body = [
-        allSkills().length > 0 ? `skills: ${allSkills().join(', ')}` : '',
+        allSkills.length > 0 ? `skills: ${allSkills.join(', ')}` : '',
         compiled.crons.length > 0
           ? `crons: ${compiled.crons.map((c) => `${c.name} → ${c.skill}`).join(', ')}`
           : '',
@@ -690,10 +691,6 @@ export default class DressAdd extends BaseCommand {
       await resetTask.run();
 
       this.log(`\n${chalk.green('✓')} Dressed in ${chalk.bold(dress.name)}!`);
-
-      function allSkills() {
-        return [...compiled.bundledSkills.keys(), ...compiled.clawHubSkills];
-      }
     } catch (err) {
       if (snapshot) {
         await this.gitManager.rollback(snapshot);
