@@ -23,7 +23,20 @@ Read `{{workspace.root}}/notes.md` to see existing notes.
 
 ### Add
 
-Extract the core content and any context from the user's message. If a URL is provided with no context, fetch the page for a title and one-line summary.
+Extract the core content and any context from the user's message.
+
+**If the note contains a URL:**
+
+1. Fetch the page and try to extract:
+   - Page title
+   - A one-line summary of what it is (article topic, video subject, tool description, etc.)
+   - Content type (article, video, tool, tweet, repo, etc.)
+2. If the page is reachable and has useful metadata, use it to fill in the Title, Tags, and notes fields automatically.
+3. If the page is unreachable, paywalled, or has no useful metadata (common with videos, dynamic apps, or shortened URLs), ask the user:
+   > I couldn't pull details from that link. What is it about? A short description will help me find it for you later.
+4. Do **not** store the note until you have at least a title and a one-line description. A bare URL with no context is useless in a notes list.
+
+**If the note is plain text** (a thought, idea, reminder), just use what the user provided.
 
 Append to `{{workspace.root}}/notes.md`:
 
