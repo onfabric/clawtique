@@ -24,7 +24,7 @@ export {
 export type { LingerieJson } from '#core/schemas/lingerie-json.ts';
 export {
   configEntrySchema,
-  configPromptSchema,
+  configPropertySchema,
   configSetupSchema,
   lingerieJsonSchema,
 } from '#core/schemas/lingerie-json.ts';

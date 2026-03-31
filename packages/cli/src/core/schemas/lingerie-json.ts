@@ -2,24 +2,24 @@ import { z } from 'zod';
 import { dressIdSchema, pluginDefSchema, semverSchema } from '#core/schemas/dress-json.ts';
 
 // ---------------------------------------------------------------------------
-// Config setup — prompts + config entries for plugin-less lingerie
+// Config setup — static configs + interactive schema for plugin-less lingerie
 // ---------------------------------------------------------------------------
-
-export const configPromptSchema = z.object({
-  id: z.string().min(1),
-  description: z.string().min(1),
-  required: z.boolean().default(true),
-  default: z.string().optional(),
-});
 
 export const configEntrySchema = z.object({
   key: z.string().min(1),
   value: z.union([z.string(), z.number(), z.boolean()]),
 });
 
+export const configPropertySchema = z.object({
+  description: z.string().min(1),
+  required: z.boolean().default(true),
+  default: z.string().optional(),
+});
+
 export const configSetupSchema = z.object({
-  prompts: z.array(configPromptSchema).default([]),
   configs: z.array(configEntrySchema).default([]),
+  configPrefix: z.string().min(1).optional(),
+  properties: z.record(z.string(), configPropertySchema).default({}),
 });
 
 // ---------------------------------------------------------------------------

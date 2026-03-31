@@ -6,22 +6,6 @@ import { BaseCommand } from '#base.ts';
 import type { LingerieJson, StateFile } from '#core/index.ts';
 import { createRegistryProvider } from '#lib/registry.ts';
 
-/**
- * Replace `{{id}}` placeholders in a template string with prompt answers.
- * Cleans up empty URL query params left by optional prompts.
- */
-function resolveTemplate(template: string, answers: Record<string, string>): string {
-  let result = template.replaceAll(/\{\{(\w+)\}\}/g, (_, id: string) => answers[id] ?? '');
-
-  // Clean up empty query-string params (e.g. "&profileId=&" or "&profileId=" at end)
-  result = result.replaceAll(/[&?]\w+=(?=&)/g, '');
-  result = result.replaceAll(/[&?]\w+=$/g, '');
-  // Fix leading ampersand after question mark if first param was removed
-  result = result.replace('?&', '?');
-
-  return result;
-}
-
 export default class LingerieAdd extends BaseCommand {
   static override summary = 'Install lingerie independently of a dress';
 
@@ -111,6 +95,11 @@ export default class LingerieAdd extends BaseCommand {
     if (uw.configSetup) {
       for (const cfg of uw.configSetup.configs) {
         this.log(`  ${chalk.green('+')} config: ${cfg.key}`);
+      }
+      if (uw.configSetup.configPrefix) {
+        for (const key of Object.keys(uw.configSetup.properties)) {
+          this.log(`  ${chalk.green('+')} config: ${uw.configSetup.configPrefix}.${key}`);
+        }
       }
     }
     this.log('');
@@ -210,35 +199,35 @@ export default class LingerieAdd extends BaseCommand {
       await restartTask.run();
     }
 
-    // Process configSetup — prompt for values and set config keys
+    // Process configSetup — set static configs and prompt for properties
     const configKeys: string[] = [];
     if (uw.configSetup) {
-      const answers: Record<string, string> = {};
-
-      if (uw.configSetup.prompts.length > 0) {
-        this.log(`\n${chalk.bold(`Configuring ${uw.name}...`)}\n`);
-
-        for (const prompt of uw.configSetup.prompts) {
-          const suffix = prompt.required ? '' : ' (optional)';
-          const value = await input({
-            message: `  ${prompt.description}${suffix}:`,
-            default: prompt.default,
-          });
-
-          if (!value && prompt.required) {
-            this.error(`Required config "${prompt.id}" was not provided.`);
-          }
-
-          answers[prompt.id] = value;
-        }
+      for (const cfg of uw.configSetup.configs) {
+        await this.openclawDriver.configSet(cfg.key, String(cfg.value));
+        configKeys.push(cfg.key);
       }
 
-      for (const cfg of uw.configSetup.configs) {
-        const resolved =
-          typeof cfg.value === 'string' ? resolveTemplate(cfg.value, answers) : String(cfg.value);
+      const { configPrefix, properties } = uw.configSetup;
+      if (configPrefix && Object.keys(properties).length > 0) {
+        this.log(`\n${chalk.bold(`Configuring ${uw.name}...`)}\n`);
 
-        await this.openclawDriver.configSet(cfg.key, resolved);
-        configKeys.push(cfg.key);
+        for (const [key, prop] of Object.entries(properties)) {
+          const suffix = prop.required ? '' : ' (optional)';
+          const value = await input({
+            message: `  ${prop.description}${suffix}:`,
+            default: prop.default,
+          });
+
+          if (!value && prop.required) {
+            this.error(`Required config "${key}" was not provided.`);
+          }
+
+          if (value) {
+            const fullKey = `${configPrefix}.${key}`;
+            await this.openclawDriver.configSet(fullKey, value);
+            configKeys.push(fullKey);
+          }
+        }
       }
     }
 
