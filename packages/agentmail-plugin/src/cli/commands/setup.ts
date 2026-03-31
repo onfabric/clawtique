@@ -1,6 +1,6 @@
 import * as readline from 'node:readline';
 import { createAgentMailClient } from '../../lib/client';
-import { saveAgentMailPluginConfig } from '../../lib/config';
+import { PLUGIN_ID, saveAgentMailPluginConfig } from '../../lib/config';
 import type { CommandCtx } from '../types';
 
 async function prompt(question: string): Promise<string> {
@@ -20,7 +20,7 @@ async function prompt(question: string): Promise<string> {
 function register({ cmd, config }: CommandCtx) {
   cmd
     .command('setup')
-    .description('Configure AgentMail — creates an email inbox for this agent')
+    .description('Configure AgentMail — save API key')
     .action(async () => {
       console.log('\n⚙️  AgentMail Setup\n');
       console.log('Get your API key from: https://console.agentmail.to\n');
@@ -28,7 +28,28 @@ function register({ cmd, config }: CommandCtx) {
       const apiKey = await prompt('Enter your AgentMail API key (am_...): ');
       if (!apiKey) {
         console.error('\n❌ No API key provided. Setup cancelled.');
-        return;
+        process.exit(1);
+      }
+
+      saveAgentMailPluginConfig(config, { apiKey, inboxId: '', emailAddress: '' });
+
+      console.log('\n✅ API key saved to ~/.openclaw/openclaw.json');
+      console.log('Run `openclaw agentmail create-inbox` to create an inbox.');
+      console.log('Restart the OpenClaw gateway to apply changes: openclaw gateway restart\n');
+    });
+
+  cmd
+    .command('create-inbox')
+    .description('Create an AgentMail inbox for this agent')
+    .action(async () => {
+      const existing = config.plugins?.entries?.[PLUGIN_ID]?.config as
+        | Record<string, string>
+        | undefined;
+      const apiKey = existing?.apiKey;
+
+      if (!apiKey) {
+        console.error('No API key configured. Run `openclaw agentmail setup` first.');
+        process.exit(1);
       }
 
       const username = await prompt('Preferred email username (leave blank for random): ');
@@ -48,11 +69,10 @@ function register({ cmd, config }: CommandCtx) {
           emailAddress: inbox.email,
         });
 
-        console.log('Configuration saved to ~/.openclaw/openclaw.json');
-        console.log('Restart the OpenClaw gateway to apply changes: openclaw gateway restart\n');
+        console.log('Configuration saved. Restart the gateway: openclaw gateway restart\n');
       } catch (err) {
         console.error(`\n❌ Failed to create inbox: ${String(err)}`);
-        console.error('Check your API key and try again.\n');
+        process.exit(1);
       }
     });
 }
