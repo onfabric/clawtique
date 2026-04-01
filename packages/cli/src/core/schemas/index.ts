@@ -65,3 +65,37 @@ export {
   personalityEntrySchema,
   stateFileSchema,
 } from '#core/schemas/state.ts';
+
+// ---------------------------------------------------------------------------
+// Resolved types — intermediate representations after compilation
+// These are never parsed from JSON; they're constructed in-memory
+// ---------------------------------------------------------------------------
+
+import type { PluginDef, SecretDef } from '#core/schemas/dress-json.ts';
+
+export interface CronDef {
+  id: string;
+  name: string;
+  schedule: string;
+  skill: string;
+  channel?: string;
+}
+
+export interface ResolvedDress {
+  id: string;
+  name: string;
+  version: string;
+  description: string;
+  requires: {
+    plugins: PluginDef[];
+    skills: string[];
+    dresses: Record<string, string>;
+    optionalDresses: Record<string, string>;
+    lingerie: string[];
+  };
+  secrets: Record<string, SecretDef>;
+  crons: CronDef[];
+  dailyMemorySection?: string;
+  files: { skills: Record<string, unknown>; templates: string[] };
+  workspace: string[];
+}

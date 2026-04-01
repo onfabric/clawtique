@@ -1,5 +1,3 @@
-// Old schemas (still used by merge.ts, dresscode.ts, state.ts, openclaw.ts)
-
 // AGENTS.md reference injection
 export { ensureDressesReference, INITIAL_DRESSES_MD } from '#core/agents-md.ts';
 // Cron utilities
@@ -20,73 +18,56 @@ export { removeSection, wrapSection } from '#core/memory.ts';
 export type { DesiredState, MergeConflict, StateDiff } from '#core/merge.ts';
 // Merge and diff
 export { diffState, mergeDresses } from '#core/merge.ts';
+// All schemas — registry JSON formats, state schemas, and resolved types
 export type {
   AppliedCron,
   AppliedState,
   ClawtiqueConfig,
   CronDef,
+  CronJson,
   DressEntry,
-  DressFiles,
-  DressId,
+  DressJson,
   LingerieApplied,
-  LingerieDef,
   LingerieEntry,
+  LingerieJson,
+  PersonalityEntry,
+  PersonalityFile,
+  PersonalityJson,
   PluginDef,
+  RegistryDressEntry,
+  RegistryIndex,
+  RegistryLingerieEntry,
   Requires,
   ResolvedDress,
+  ResolvedPersonality,
   SecretDef,
+  SkillJson,
+  SkillParam,
+  SkillTrigger,
   StateFile,
-} from '#core/schema.ts';
+  Weekday,
+} from '#core/schemas/index.ts';
 export {
   appliedCronSchema,
   appliedStateSchema,
   clawtiqueConfigSchema,
-  cronDefSchema,
-  cronExpressionSchema,
-  dressEntrySchema,
-  dressFilesSchema,
-  dressIdSchema,
-  lingerieAppliedSchema,
-  lingerieDefSchema,
-  lingerieEntrySchema,
-  paramDefSchema,
-  pluginDefSchema,
-  requiresSchema,
-  resolvedDressSchema,
-  secretDefSchema,
-  semverSchema,
-  stateFileSchema,
-} from '#core/schema.ts';
-export type {
-  ClawtiqueConfig as ClawtiqueConfigV2,
-  CronJson,
-  DressEntry as DressEntryV2,
-  DressJson,
-  LingerieEntry as LingerieEntryV2,
-  LingerieJson,
-  PersonalityEntry as PersonalityEntryV2,
-  PersonalityFile,
-  PersonalityJson,
-  RegistryDressEntry,
-  RegistryIndex,
-  RegistryLingerieEntry,
-  ResolvedPersonality,
-  SkillJson,
-  SkillParam,
-  SkillTrigger,
-  StateFile as StateFileV2,
-  Weekday,
-} from '#core/schemas/index.ts';
-// New JSON-based schemas
-export {
   cronJsonSchema,
+  dressEntrySchema,
+  dressIdSchema,
   dressJsonSchema,
+  lingerieAppliedSchema,
+  lingerieEntrySchema,
   lingerieJsonSchema,
   PERSONALITY_AUTO_VARS,
   PERSONALITY_FILES,
   personalityJsonSchema,
+  pluginDefSchema,
   registryIndexSchema,
+  requiresSchema,
+  secretDefSchema,
+  semverSchema,
   skillJsonSchema,
   skillParamSchema,
   skillTriggerSchema,
+  stateFileSchema,
 } from '#core/schemas/index.ts';

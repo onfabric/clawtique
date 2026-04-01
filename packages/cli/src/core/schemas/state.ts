@@ -6,8 +6,6 @@ import { z } from 'zod';
 
 const dressIdSchema = z.string().regex(/^[a-z][a-z0-9-]*$/);
 
-const weekdaySchema = z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']);
-
 // ---------------------------------------------------------------------------
 // Applied cron — what was actually registered in openclaw
 // ---------------------------------------------------------------------------
@@ -15,7 +13,7 @@ const weekdaySchema = z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']);
 export const appliedCronSchema = z.object({
   qualifiedId: z.string(),
   displayName: z.string(),
-  skill: z.string(),
+  skill: z.string().default(''),
   channel: z.string().optional(),
 });
 
@@ -24,8 +22,8 @@ export const appliedCronSchema = z.object({
 // ---------------------------------------------------------------------------
 
 const cronScheduleSchema = z.object({
-  time: z.string().regex(/^\d{2}:\d{2}$/),
-  days: z.array(weekdaySchema),
+  time: z.string(),
+  days: z.array(z.string()),
   channel: z.string().optional(),
 });
 
@@ -45,6 +43,7 @@ export const appliedStateSchema = z.object({
   userSkills: z.array(z.string()).default([]),
   workspaceFiles: z.array(z.string()).default([]),
   lingerie: z.array(z.string()).default([]),
+  dependsOnDresses: z.array(z.string()).default([]),
 });
 
 // ---------------------------------------------------------------------------
@@ -52,13 +51,11 @@ export const appliedStateSchema = z.object({
 // ---------------------------------------------------------------------------
 
 export const dressEntrySchema = z.object({
-  registryVersion: z.string(),
+  package: z.string(),
+  version: z.string(),
   installedAt: z.string().datetime(),
-  schedule: z.object({
-    timezone: z.string(),
-    crons: z.record(z.string(), cronScheduleSchema).default({}),
-  }),
-  params: z.record(z.string(), z.record(z.string(), z.unknown())).default({}),
+  params: z.record(z.string(), z.unknown()).default({}),
+  schedules: z.record(z.string(), cronScheduleSchema).default({}),
   applied: appliedStateSchema,
 });
 
@@ -69,12 +66,14 @@ export const dressEntrySchema = z.object({
 export const lingerieAppliedSchema = z.object({
   plugins: z.array(z.string()).default([]),
   installedPlugins: z.array(z.string()).default([]),
+  configKeys: z.array(z.string()).default([]),
   skills: z.array(z.string()).default([]),
   installedSkills: z.array(z.string()).default([]),
 });
 
 export const lingerieEntrySchema = z.object({
-  registryVersion: z.string(),
+  package: z.string(),
+  version: z.string(),
   installedAt: z.string().datetime(),
   applied: lingerieAppliedSchema,
 });

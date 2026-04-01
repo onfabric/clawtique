@@ -1,4 +1,4 @@
-import type { AppliedCron, CronDef } from '#core/schema.ts';
+import type { AppliedCron, CronDef } from '#core/schemas/index.ts';
 
 /**
  * Interface for interacting with an OpenClaw instance.
