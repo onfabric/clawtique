@@ -18,7 +18,26 @@
       {
         "key": "tools.media.audio.models",
         "value": "[{\"provider\":\"openai\",\"model\":\"gpt-4o-mini-transcribe\"}]"
+      },
+      { "key": "messages.tts.auto", "value": "tagged" },
+      { "key": "messages.tts.provider", "value": "openai" }
+    ],
+    "configPrefix": "messages.tts.providers.openai",
+    "properties": {
+      "model": {
+        "description": "OpenAI TTS model",
+        "required": true,
+        "default": "tts-1"
+      },
+      "voice": {
+        "description": "OpenAI TTS voice",
+        "required": true,
+        "default": "nova"
+      },
+      "apiKey": {
+        "description": "OpenAI API key for TTS",
+        "required": true
       }
-    ]
+    }
   }
 }
