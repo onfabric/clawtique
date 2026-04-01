@@ -171,7 +171,9 @@ export default class LingerieRemove extends BaseCommand {
             task: async () => {
               for (const key of configKeys) {
                 try {
-                  await this.openclawDriver.configDelete(key);
+                  if (key) {
+                    await this.openclawDriver.configDelete(key);
+                  }
                 } catch {
                   // Config key may have been manually removed
                 }
