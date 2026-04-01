@@ -1,0 +1,17 @@
+{
+  "id": "agentmail",
+  "name": "Email (AgentMail)",
+  "version": "1.0.0",
+  "description": "Email send/receive via AgentMail — gives OpenClaw its own email address.",
+  "plugins": [
+    {
+      "id": "agentmail",
+      "spec": "@onfabric/agentmail-plugin",
+      "setupCommand": "openclaw agentmail setup",
+      "setupNotes": [
+        "Get an API key from https://console.agentmail.to (API Keys section)"
+      ]
+    }
+  ],
+  "skills": ["agentmail"]
+}

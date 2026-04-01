@@ -85,6 +85,7 @@ export default class LingerieRemove extends BaseCommand {
     const pluginsToRemove = entry.applied.plugins.filter((p) => installedPluginSet.has(p));
     const pluginsRetained = entry.applied.plugins.filter((p) => !installedPluginSet.has(p));
     const configKeys = entry.applied.configKeys ?? [];
+    const skillsToRemove = entry.applied.installedSkills ?? [];
 
     // Show what will happen
     this.log(chalk.bold(`\nRemoving lingerie "${lingerieId}":\n`));
@@ -96,6 +97,9 @@ export default class LingerieRemove extends BaseCommand {
       this.log(
         `  ${chalk.dim('~')} plugin: ${p} ${chalk.dim('(not installed by clawtique — retained)')}`,
       );
+    }
+    for (const s of skillsToRemove) {
+      this.log(`  ${chalk.red('-')} skill: ${s}`);
     }
     for (const k of configKeys) {
       this.log(`  ${chalk.red('-')} config: ${k}`);
@@ -140,6 +144,19 @@ export default class LingerieRemove extends BaseCommand {
                   await this.openclawDriver.pluginUninstall(plugin);
                 } catch {
                   // Plugin may have been manually removed
+                }
+              }
+            },
+          },
+          {
+            title: 'Removing skills',
+            skip: () => skillsToRemove.length === 0,
+            task: async () => {
+              for (const skill of skillsToRemove) {
+                try {
+                  await this.openclawDriver.skillRemove(skill);
+                } catch {
+                  // Skill may have been manually removed
                 }
               }
             },

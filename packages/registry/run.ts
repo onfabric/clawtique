@@ -203,6 +203,14 @@ for (const dir of uwDirs) {
       error(`lingerie.id "${uw.id}" does not match directory name "${dir}"`);
     }
 
+    // Validate skills
+    for (const skillName of uw.skills) {
+      const mdPath = join(LINGERIE_DIR, dir, 'skills', `${skillName}.md`);
+      if (!existsSync(mdPath)) {
+        error(`lingerie "${dir}": skill "${skillName}" has no .md file at skills/${skillName}.md`);
+      }
+    }
+
     lingerieIndex[uw.id] = {
       name: uw.name,
       version: uw.version,

@@ -1,0 +1,24 @@
+{
+  "id": "agentmail",
+  "name": "AgentMail",
+  "description": "Email send/receive via AgentMail",
+  "configSchema": {
+    "type": "object",
+    "required": [],
+    "additionalProperties": false,
+    "properties": {
+      "apiKey": {
+        "type": "string",
+        "description": "AgentMail API key (am_...)"
+      },
+      "inboxId": {
+        "type": "string",
+        "description": "AgentMail inbox ID"
+      },
+      "emailAddress": {
+        "type": "string",
+        "description": "The agent's email address"
+      }
+    }
+  }
+}

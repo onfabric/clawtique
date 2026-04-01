@@ -31,6 +31,9 @@ export interface RegistryProvider {
   /** Fetch an lingerie definition by ID. */
   getLingerieJson(lingerieId: string): Promise<LingerieJson>;
 
+  /** Read a bundled skill .md file for a lingerie. */
+  getLingerieSkillContent(lingerieId: string, skillName: string): Promise<string>;
+
   /** Read the initial content of a workspace file for a dress. */
   getWorkspaceFileContent(dressId: string, filePath: string): Promise<string>;
 
@@ -74,6 +77,11 @@ export class LocalRegistryProvider implements RegistryProvider {
     const uwPath = join(this.registryDir, 'lingerie', lingerieId, 'lingerie.json');
     const raw = JSON.parse(await readFile(uwPath, 'utf-8'));
     return lingerieJsonSchema.parse(raw);
+  }
+
+  async getLingerieSkillContent(lingerieId: string, skillName: string): Promise<string> {
+    const skillPath = join(this.registryDir, 'lingerie', lingerieId, 'skills', `${skillName}.md`);
+    return readFile(skillPath, 'utf-8');
   }
 
   async listSkills(dressId: string): Promise<string[]> {
@@ -163,6 +171,13 @@ export class GitHubRegistryProvider implements RegistryProvider {
       `lingerie/${lingerieId}/lingerie.json`,
     );
     return lingerieJsonSchema.parse(raw);
+  }
+
+  async getLingerieSkillContent(lingerieId: string, skillName: string): Promise<string> {
+    return this.fetchText(
+      `${this.baseUrl}/lingerie/${lingerieId}/skills/${skillName}.md`,
+      `lingerie/${lingerieId}/skills/${skillName}.md`,
+    );
   }
 
   async listSkills(dressId: string): Promise<string[]> {

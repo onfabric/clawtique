@@ -69,6 +69,8 @@ export const dressEntrySchema = z.object({
 export const lingerieAppliedSchema = z.object({
   plugins: z.array(z.string()).default([]),
   installedPlugins: z.array(z.string()).default([]),
+  skills: z.array(z.string()).default([]),
+  installedSkills: z.array(z.string()).default([]),
 });
 
 export const lingerieEntrySchema = z.object({

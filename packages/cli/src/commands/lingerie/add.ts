@@ -4,7 +4,7 @@ import chalk from 'chalk';
 import { Listr } from 'listr2';
 import { BaseCommand } from '#base.ts';
 import type { LingerieJson, StateFile } from '#core/index.ts';
-import { createRegistryProvider } from '#lib/registry.ts';
+import { createRegistryProvider, type RegistryProvider } from '#lib/registry.ts';
 
 export default class LingerieAdd extends BaseCommand {
   static override summary = 'Install lingerie independently of a dress';
@@ -92,6 +92,9 @@ export default class LingerieAdd extends BaseCommand {
         this.log(`  ${chalk.green('+')} plugin: ${plugin.id}`);
       }
     }
+    for (const skill of uw.skills) {
+      this.log(`  ${chalk.green('+')} skill: ${skill}`);
+    }
     if (uw.configSetup) {
       for (const cfg of uw.configSetup.configs) {
         this.log(`  ${chalk.green('+')} config: ${cfg.key}`);
@@ -129,7 +132,7 @@ export default class LingerieAdd extends BaseCommand {
     const snapshot = await this.gitManager.snapshot();
 
     try {
-      await this.installLingerie(lingerieId, uw, state);
+      await this.installLingerie(registry, lingerieId, uw, state);
 
       const commitParts: string[] = [];
       if (uw.plugins.length > 0) {
@@ -156,6 +159,7 @@ export default class LingerieAdd extends BaseCommand {
   }
 
   private async installLingerie(
+    registry: RegistryProvider,
     lingerieId: string,
     uw: LingerieJson,
     state: StateFile,
@@ -242,6 +246,15 @@ export default class LingerieAdd extends BaseCommand {
       }
     }
 
+    // Install bundled skills
+    const installedSkills: string[] = [];
+    for (const skillName of uw.skills) {
+      const content = await registry.getLingerieSkillContent(lingerieId, skillName);
+      await this.openclawDriver.skillCopyBundled(skillName, content);
+      installedSkills.push(skillName);
+      this.log(`  ${chalk.green('+')} skill: ${skillName}`);
+    }
+
     // Restart gateway if anything changed
     if (installedPlugins.length > 0 || configKeys.length > 0) {
       const restartTask = new Listr(
@@ -273,6 +286,8 @@ export default class LingerieAdd extends BaseCommand {
         plugins: uw.plugins.map((p) => p.id),
         installedPlugins,
         configKeys,
+        skills: uw.skills,
+        installedSkills,
       },
     };
     await this.stateManager.save(state);
