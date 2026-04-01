@@ -48,6 +48,7 @@ export function registerSendEmailTool(
           details: result,
         };
       } catch (err) {
+        api.logger.error(`agentmail: error sending email: ${String(err)}`);
         return {
           content: [{ type: 'text' as const, text: `Error sending email: ${String(err)}` }],
           details: { error: String(err) },

@@ -60,6 +60,7 @@ export function registerListEmailsTool(
           },
         };
       } catch (err) {
+        api.logger.error(`agentmail: error listing emails: ${String(err)}`);
         return {
           content: [{ type: 'text' as const, text: `Error listing emails: ${String(err)}` }],
           details: { error: String(err) },

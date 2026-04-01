@@ -1,6 +1,6 @@
 import * as readline from 'node:readline';
 import { createAgentMailClient } from '../../lib/client';
-import { PLUGIN_ID, saveAgentMailPluginConfig } from '../../lib/config';
+import { saveAgentMailPluginConfig } from '../../lib/config';
 import type { CommandCtx } from '../types';
 
 async function prompt(question: string): Promise<string> {
@@ -20,7 +20,7 @@ async function prompt(question: string): Promise<string> {
 function register({ cmd, config }: CommandCtx) {
   cmd
     .command('setup')
-    .description('Configure AgentMail — save API key')
+    .description('Configure AgentMail — save API key and select or create an inbox')
     .action(async () => {
       console.log('\n⚙️  AgentMail Setup\n');
       console.log('Get your API key from: https://console.agentmail.to\n');
@@ -31,49 +31,69 @@ function register({ cmd, config }: CommandCtx) {
         process.exit(1);
       }
 
-      saveAgentMailPluginConfig(config, { apiKey, inboxId: '', emailAddress: '' });
+      const client = createAgentMailClient(apiKey);
 
-      console.log('\n✅ API key saved to ~/.openclaw/openclaw.json');
-      console.log('Run `openclaw agentmail create-inbox` to create an inbox.');
-      console.log('Restart the OpenClaw gateway to apply changes: openclaw gateway restart\n');
-    });
-
-  cmd
-    .command('create-inbox')
-    .description('Create an AgentMail inbox for this agent')
-    .action(async () => {
-      const existing = config.plugins?.entries?.[PLUGIN_ID]?.config as
-        | Record<string, string>
-        | undefined;
-      const apiKey = existing?.apiKey;
-
-      if (!apiKey) {
-        console.error('No API key configured. Run `openclaw agentmail setup` first.');
-        process.exit(1);
-      }
-
-      const username = await prompt('Preferred email username (leave blank for random): ');
-
-      console.log('\nCreating inbox...');
+      // Try to list existing inboxes — inbox-scoped keys can list but not create
+      let inboxId = '';
+      let emailAddress = '';
 
       try {
-        const client = createAgentMailClient(apiKey);
-        const inbox = await client.createInbox(username ? { username } : undefined);
+        const { items } = await client.listInboxes({ limit: 10 });
 
-        console.log(`\n✅ Inbox created: ${inbox.email}`);
-        console.log(`   Inbox ID: ${inbox.inbox_id}\n`);
+        if (items.length === 1) {
+          // Single inbox — use it automatically
+          inboxId = items[0]!.inbox_id;
+          emailAddress = items[0]!.email;
+          console.log(`\n📬 Found inbox: ${emailAddress}`);
+        } else if (items.length > 1) {
+          // Multiple inboxes — let user pick
+          console.log('\nExisting inboxes:\n');
+          for (let i = 0; i < items.length; i++) {
+            console.log(`  ${i + 1}. ${items[i]!.email}`);
+          }
+          console.log(`  ${items.length + 1}. Create a new inbox`);
 
-        saveAgentMailPluginConfig(config, {
-          apiKey,
-          inboxId: inbox.inbox_id,
-          emailAddress: inbox.email,
-        });
+          const choice = await prompt(`\nSelect an inbox (1-${items.length + 1}): `);
+          const idx = Number.parseInt(choice, 10) - 1;
 
-        console.log('Configuration saved. Restart the gateway: openclaw gateway restart\n');
-      } catch (err) {
-        console.error(`\n❌ Failed to create inbox: ${String(err)}`);
-        process.exit(1);
+          if (idx >= 0 && idx < items.length) {
+            inboxId = items[idx]!.inbox_id;
+            emailAddress = items[idx]!.email;
+          }
+          // else: fall through to create a new inbox
+        }
+      } catch {
+        // listInboxes failed — try creating one
       }
+
+      // Create a new inbox if none was selected
+      if (!inboxId) {
+        const username = await prompt('Preferred email username (leave blank for random): ');
+
+        console.log('\nCreating inbox...');
+        try {
+          const inbox = await client.createInbox(username ? { username } : undefined);
+          inboxId = inbox.inbox_id;
+          emailAddress = inbox.email;
+          console.log(`\n📬 Inbox created: ${emailAddress}`);
+        } catch (err) {
+          const errMsg = String(err);
+          if (errMsg.includes('403')) {
+            console.error(
+              '\n❌ Cannot create inbox — your API key may be inbox-scoped.\n' +
+                '   Use an account-level API key from https://console.agentmail.to\n',
+            );
+          } else {
+            console.error(`\n❌ Failed to create inbox: ${errMsg}`);
+          }
+          process.exit(1);
+        }
+      }
+
+      saveAgentMailPluginConfig(config, { apiKey, inboxId, emailAddress });
+
+      console.log(`\n✅ AgentMail configured: ${emailAddress}`);
+      console.log('Restart the OpenClaw gateway to apply changes: openclaw gateway restart\n');
     });
 }
 

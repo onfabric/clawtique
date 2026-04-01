@@ -5,7 +5,7 @@ description: Send and receive emails using your dedicated email inbox.
 
 # Email
 
-You have your own email address and can send and receive emails. Use this capability when you need to interact with services or people via email — for example, to sign up for accounts, receive verification codes, or correspond on behalf of the user.
+You have your own email address and can send and receive emails. Your email address is shown in the `email_send` tool description. Use this capability when you need to interact with services or people via email — for example, to sign up for accounts, receive verification codes, or correspond on behalf of the user.
 
 ## Your email tools
 
@@ -36,3 +36,4 @@ This is especially useful after submitting a signup form — call `email_wait` w
 - **Don't spam**: only send emails when there is a clear purpose.
 - **Ask before emailing people**: if you need to email someone the user hasn't mentioned, ask the user for permission first.
 - **Keep it professional**: write clear, concise emails. Sign with the user's name when corresponding on their behalf.
+- **Verification codes**: when you receive a verification email, extract the code and use it immediately — codes expire quickly.

@@ -105,7 +105,10 @@ export function createAgentMailClient(apiKey: string) {
           size: number;
           content_type: string;
         }> | null;
-      }>('GET', `/inboxes/${encodeURIComponent(inboxId)}/messages/${encodeURIComponent(messageId)}`);
+      }>(
+        'GET',
+        `/inboxes/${encodeURIComponent(inboxId)}/messages/${encodeURIComponent(messageId)}`,
+      );
     },
   };
 }
