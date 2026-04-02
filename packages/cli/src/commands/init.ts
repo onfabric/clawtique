@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { confirm, input, search } from '@inquirer/prompts';
 import { Command, Flags } from '@oclif/core';
@@ -111,11 +111,39 @@ export default class Init extends Command {
     // Ensure AGENTS.md references DRESSES.md (idempotent — skips if marker present)
     await ensureDressesReference(ocWorkspace);
 
+    // Write a clean HEARTBEAT.md (replace any noisy template)
+    await writeFile(ocPaths.heartbeat, '# Heartbeat checklist\n');
+
     // Ensure tools.profile is 'full' so all plugins/tools are available
     if (existsSync(ocPaths.config)) {
       const oc = new LocalOpenClawDriver();
       await oc.configSet('tools.profile', 'full');
       this.log(`  ${chalk.dim('Set tools.profile to "full" in openclaw.json')}`);
+
+      // Set heartbeat interval to 1 hour (default is 30m)
+      await oc.configSet('agents.defaults.heartbeat.every', '60m');
+      this.log(`  ${chalk.dim('Set heartbeat interval to 60m')}`);
+    }
+
+    // Seed USER.md with name and timezone so the agent always knows them
+    const userMdPath = join(ocWorkspace, 'USER.md');
+    const nameLine = `- **Name:** ${userName}`;
+    const tzLine = `- **Timezone:** ${timezone} (${gmtOffset(timezone)})`;
+    if (existsSync(userMdPath)) {
+      let existing = await readFile(userMdPath, 'utf-8');
+      if (existing.includes('**Name:**')) {
+        existing = existing.replace(/- \*\*Name:\*\* .*/g, nameLine);
+      } else {
+        existing = `${existing.trimEnd()}\n${nameLine}`;
+      }
+      if (existing.includes('**Timezone:**')) {
+        existing = existing.replace(/- \*\*Timezone:\*\* .*/g, tzLine);
+      } else {
+        existing = `${existing.trimEnd()}\n${tzLine}`;
+      }
+      await writeFile(userMdPath, `${existing.trimEnd()}\n`);
+    } else {
+      await writeFile(userMdPath, `# User\n\n${nameLine}\n${tzLine}\n`);
     }
 
     // Write config
@@ -127,8 +155,8 @@ export default class Init extends Command {
     };
     await writeFile(paths.config, `${JSON.stringify(config, null, 2)}\n`);
 
-    // Write initial state
-    const state: StateFile = {
+    // Write initial state (preserve existing entries on re-init)
+    let state: StateFile = {
       version: 1,
       serial: 0,
       openclawDir,
@@ -136,6 +164,16 @@ export default class Init extends Command {
       lingerie: {},
       personality: null,
     };
+    if (existsSync(paths.state)) {
+      const existing: StateFile = JSON.parse(await readFile(paths.state, 'utf-8'));
+      state = {
+        ...state,
+        dresses: existing.dresses,
+        lingerie: existing.lingerie,
+        personality: existing.personality,
+        serial: existing.serial,
+      };
+    }
     await writeFile(paths.state, `${JSON.stringify(state, null, 2)}\n`);
 
     // Initialize git repo (idempotent — skips if .git exists)
@@ -148,8 +186,9 @@ export default class Init extends Command {
     this.log(`${chalk.green('✓')} OpenClaw directory: ${chalk.cyan(openclawDir)}`);
     this.log(`${chalk.green('✓')} Git repo initialized`);
     this.log('');
-    this.log('Ready. Try:');
-    this.log(`  ${chalk.cyan('clawtique dress add')} <id>`);
-    this.log(`  ${chalk.cyan('clawtique status')}`);
+    this.log('Ready. Next steps:');
+    this.log(`  1. ${chalk.cyan('clawtique personality set')} <id>  — set up your personality`);
+    this.log(`  2. ${chalk.cyan('clawtique lingerie add')} <id>     — add lingerie`);
+    this.log(`  3. ${chalk.cyan('clawtique dress add')} <id>        — add a dress`);
   }
 }
