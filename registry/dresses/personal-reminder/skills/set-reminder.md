@@ -28,17 +28,15 @@ Examples:
 
 If the request is ambiguous (e.g., missing time, unclear recurrence), ask for clarification before creating the cron.
 
-## Step 3: Build the cron command
+## Step 3: Create the cron
 
 ### For recurring reminders
-
-Use a **5-field cron expression** with the user's IANA timezone:
 
 ```
 openclaw cron add \
   --name "[custom-personal-reminder] <short description>" \
   --cron "<cron-expression>" \
-  --timezone "<IANA timezone>" \
+  --tz "<IANA timezone>" \
   --message "<reminder message to deliver>" \
   --session isolated \
   --announce \
@@ -54,46 +52,49 @@ Cron expression guide:
 - `30 8 * * 1-5` = weekdays at 8:30
 - `0 9 1 * *` = 1st of every month at 9:00
 
+Note: `--exact` disables stagger and is only valid with `--cron`, never with `--at`.
+
 ### For one-time reminders
 
-Use an **ISO 8601 timestamp** with `--at`:
+Use either a **relative duration** or an **ISO 8601 timestamp** with `--at`:
 
 ```
 openclaw cron add \
   --name "[custom-personal-reminder] <short description>" \
-  --at "<ISO 8601 timestamp>" \
-  --message "<reminder message — see below for self-removal instructions>" \
+  --at "<duration or ISO timestamp>" \
+  --tz "<IANA timezone>" \
+  --message "<reminder message to deliver>" \
   --session isolated \
   --announce \
   --channel waclaw \
   --thinking low \
   --timeout-seconds 120 \
-  --exact
+  --delete-after-run
 ```
 
-**Critical for one-time reminders:** The `--message` must include self-removal instructions so the cron job cleans up after firing. Structure the message like this:
+For `--at`, accepted formats:
+- Relative duration: `10m`, `2h`, `1h30m` (no `+` prefix)
+- ISO 8601 without offset: `2026-04-03T10:00:00` (requires `--tz` to interpret)
+- ISO 8601 with offset: `2026-04-03T10:00:00+02:00` (self-contained)
 
-```
-Deliver this reminder to the user: "<the actual reminder text>"
-
-After delivering the reminder, remove this cron job by running:
-1. Run `openclaw cron list --json` to find the job with name starting with "[custom-personal-reminder]" that matches this reminder
-2. Run `openclaw cron rm <job-id>` with the matching job's ID
-
-This is a one-time reminder and must be deleted after delivery.
-```
+The `--delete-after-run` flag ensures the job is automatically cleaned up after it fires. Do **not** use `--exact` with `--at` — it is only valid for `--cron`.
 
 ## Step 4: Execute
 
-Run the constructed `openclaw cron add` command in the shell.
+Run the command. If it fails, fix the issue and retry silently — do not tell the user about command formatting problems or errors.
 
 ## Step 5: Confirm
 
-Tell the user their reminder has been set. Include:
-- What they'll be reminded about
-- When (in their local time)
-- Whether it's one-time or recurring
-- A note that they can ask you to list or remove reminders anytime
+Send a **short, natural confirmation**. Just acknowledge the reminder is set — one or two sentences max.
+
+Good: "Done — I'll remind you to call the dentist tomorrow at 10am."
+Good: "All set! You'll get a reminder every Monday at 9am about the weekly report."
+
+Bad: "I've created a cron job with expression 0 9 * * 1 in timezone Europe/Rome..."
+Bad: "The reminder has been scheduled as a one-time isolated session cron with announce delivery..."
+Bad: "Done — I'll remind you to go to lunch at 12:10 UTC, one time only."
+
+**Never mention** cron expressions, CLI flags, session types, delivery modes, UTC times, or any other technical details in your response. Always express times in the user's local timezone. The user just wants to know their reminder is set.
 
 ## Step 6: Update daily memory
 
@@ -104,8 +105,10 @@ In today's daily memory under **## {{memory.dailyMemorySection}}**, log:
 
 ## Rules
 
-- The `--name` must always start with `[custom-personal-reminder]` — this prefix is how we identify reminders created by this dress
+- The `--name` must always start with `[custom-personal-reminder]`
 - The `--channel` is always `waclaw` — never ask the user which channel to use
-- Always convert times to the user's timezone when building the cron expression or ISO timestamp
-- For relative times ("in 2 hours"), calculate the absolute time from now
-- Keep the reminder message clear and actionable — the user should immediately understand what they need to do when they receive it
+- Always use the user's IANA timezone with `--tz`
+- For relative times ("in 2 hours"), use the duration syntax with `--at` (e.g., `--at 2h`)
+- Keep the `--message` focused on what to remind the user about — it should read naturally as a reminder
+- If the command fails, fix it silently and retry. Do not surface CLI errors to the user.
+- Do not use `--exact` with `--at` — it only works with `--cron`
