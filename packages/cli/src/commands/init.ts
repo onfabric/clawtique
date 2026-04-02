@@ -125,18 +125,16 @@ export default class Init extends Command {
       this.log(`  ${chalk.dim('Set heartbeat interval to 60m')}`);
     }
 
-    // Seed MEMORY.md with timezone so the agent always knows it
-    const memoryDir = join(ocWorkspace, 'memory');
-    await mkdir(memoryDir, { recursive: true });
-    const memoryPath = join(ocWorkspace, 'MEMORY.md');
+    // Seed USER.md with timezone so the agent always knows it
+    const userMdPath = join(ocWorkspace, 'USER.md');
     const tzLine = `- **Timezone:** ${timezone} (${gmtOffset(timezone)})`;
-    if (existsSync(memoryPath)) {
-      const existing = await readFile(memoryPath, 'utf-8');
+    if (existsSync(userMdPath)) {
+      const existing = await readFile(userMdPath, 'utf-8');
       if (!existing.includes('**Timezone:**')) {
-        await writeFile(memoryPath, `${existing.trimEnd()}\n\n${tzLine}\n`);
+        await writeFile(userMdPath, `${existing.trimEnd()}\n\n${tzLine}\n`);
       }
     } else {
-      await writeFile(memoryPath, `# Memory\n\n${tzLine}\n`);
+      await writeFile(userMdPath, `# User\n\n- **Name:** ${userName}\n${tzLine}\n`);
     }
 
     // Write config
