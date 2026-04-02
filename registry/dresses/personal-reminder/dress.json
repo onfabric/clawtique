@@ -1,0 +1,27 @@
+{
+  "id": "personal-reminder",
+  "name": "Personal Reminder",
+  "version": "1.0.0",
+  "description": "Schedule one-time or recurring reminders delivered via message.",
+
+  "requires": {
+    "lingerie": ["waclaw"]
+  },
+
+  "skills": {
+    "set-reminder": {
+      "trigger": {
+        "type": "user",
+        "description": "User wants to set, schedule, or create a reminder for something"
+      }
+    },
+    "manage-reminders": {
+      "trigger": {
+        "type": "user",
+        "description": "User wants to list, remove, edit, or check their existing reminders"
+      }
+    }
+  },
+
+  "dailyMemorySection": "Reminders"
+}
