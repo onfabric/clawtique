@@ -8,8 +8,7 @@
       "id": "browser-use-agent",
       "spec": "@onfabric/browser-use-plugin",
       "setupNotes": [
-        "Uses the same Browser Use API key as the CDP connection.",
-        "Get your key from https://cloud.browser-use.com/settings"
+        "Get your API key from https://cloud.browser-use.com/settings"
       ]
     }
   ],
