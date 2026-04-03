@@ -51,8 +51,7 @@ export function registerRunTaskTool(
 
       try {
         const sessionId =
-          params.session_id ??
-          (await client.sessions.create({ profileId, proxyCountryCode })).id;
+          params.session_id ?? (await client.sessions.create({ profileId, proxyCountryCode })).id;
 
         const {
           id: taskId,
