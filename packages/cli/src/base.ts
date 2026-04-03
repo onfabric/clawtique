@@ -164,14 +164,10 @@ export abstract class BaseCommand extends Command {
     const waclawSession = sessions.find((s) => s.key.includes(':waclaw:'));
     if (!waclawSession) return;
 
-    await this.retryOrWarn(
-      () => this.openclawDriver.sessionReset(waclawSession.sessionId),
-      {
-        attempts: 3,
-        failMessage:
-          'Session reset failed. The waclaw session will pick up changes on next restart',
-      },
-    );
+    await this.retryOrWarn(() => this.openclawDriver.sessionReset(waclawSession.sessionId), {
+      attempts: 3,
+      failMessage: 'Session reset failed. The waclaw session will pick up changes on next restart',
+    });
   }
 
   /**
