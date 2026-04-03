@@ -1,6 +1,6 @@
 import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
-import { confirm, select } from '@inquirer/prompts';
+import { select } from '@inquirer/prompts';
 import { Args, Flags } from '@oclif/core';
 import chalk from 'chalk';
 import { Listr } from 'listr2';
@@ -121,33 +121,11 @@ export default class LingerieRemove extends BaseCommand {
     }
     this.log('');
 
-    if (flags['dry-run']) {
-      this.log(chalk.yellow('Dry run — no changes applied.'));
-      return;
-    }
+    if (this.isDryRun(flags)) return;
+    await this.ensureHealthy();
+    if (await this.confirmOrAbort(flags, 'Proceed?')) return;
 
-    // Verify openclaw is reachable
-    const health = await this.openclawDriver.health();
-    if (!health.ok) {
-      this.error(
-        `OpenClaw is not reachable.\n\n` +
-          `  ${health.message || 'Could not connect to openclaw CLI.'}\n\n` +
-          `Make sure openclaw is installed and accessible, then try again.`,
-      );
-    }
-
-    if (!flags.yes) {
-      const proceed = await confirm({ message: 'Proceed?', default: true });
-      if (!proceed) {
-        this.log('Aborted.');
-        return;
-      }
-    }
-
-    await this.stateManager.lock();
-    const snapshot = await this.gitManager.snapshot();
-
-    try {
+    await this.withAtomicOp(async () => {
       const tasks = new Listr(
         [
           {
@@ -239,12 +217,7 @@ export default class LingerieRemove extends BaseCommand {
       await this.gitManager.commit('revert', lingerieId, 'lingerie remove', body);
 
       this.log(`\n${chalk.green('✓')} Removed lingerie "${lingerieId}".`);
-    } catch (err) {
-      if (snapshot) await this.gitManager.rollback(snapshot);
-      throw err;
-    } finally {
-      await this.stateManager.unlock();
-    }
+    });
   }
 
   private findDependantDresses(state: StateFile, lingerieId: string): string[] {

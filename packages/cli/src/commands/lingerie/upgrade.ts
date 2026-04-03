@@ -1,6 +1,6 @@
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import { confirm, select } from '@inquirer/prompts';
+import { select } from '@inquirer/prompts';
 import { Args, Flags } from '@oclif/core';
 import chalk from 'chalk';
 import { Listr } from 'listr2';
@@ -164,37 +164,15 @@ export default class LingerieUpgrade extends BaseCommand {
       return;
     }
 
-    if (flags['dry-run']) {
-      this.log(chalk.yellow('Dry run — no changes applied.'));
-      return;
-    }
-
-    // Verify openclaw health
-    const health = await this.openclawDriver.health();
-    if (!health.ok) {
-      this.error(
-        `OpenClaw is not reachable.\n\n` +
-          `  ${health.message || 'Could not connect to openclaw CLI.'}\n\n` +
-          `Make sure openclaw is installed and accessible, then try again.`,
-      );
-    }
-
-    if (!flags.yes) {
-      const proceed = await confirm({ message: 'Apply upgrade?', default: true });
-      if (!proceed) {
-        this.log('Aborted.');
-        return;
-      }
-    }
+    if (this.isDryRun(flags)) return;
+    await this.ensureHealthy();
+    if (await this.confirmOrAbort(flags, 'Apply upgrade?')) return;
 
     // -----------------------------------------------------------------------
     // Apply
     // -----------------------------------------------------------------------
 
-    await this.stateManager.lock();
-    const snapshot = await this.gitManager.snapshot();
-
-    try {
+    await this.withAtomicOp(async () => {
       const installedPlugins = [...(entry.applied.installedPlugins ?? [])];
       const installedSkills = [...(entry.applied.installedSkills ?? [])];
       const configKeys = [...(entry.applied.configKeys ?? [])];
@@ -357,12 +335,7 @@ export default class LingerieUpgrade extends BaseCommand {
       );
 
       this.log(`\n${chalk.green('✓')} Upgraded lingerie "${lingerieId}" to v${latest.version}.`);
-    } catch (err) {
-      if (snapshot) await this.gitManager.rollback(snapshot);
-      throw err;
-    } finally {
-      await this.stateManager.unlock();
-    }
+    });
   }
 
   /**

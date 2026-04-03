@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { checkbox, confirm, input, select } from '@inquirer/prompts';
+import { checkbox, input, select } from '@inquirer/prompts';
 import { Args, Flags } from '@oclif/core';
 import chalk from 'chalk';
 import { Listr } from 'listr2';
@@ -301,28 +301,9 @@ export default class DressUpdate extends BaseCommand {
     for (const c of paramChanges) this.log(c);
     this.log('');
 
-    if (flags['dry-run']) {
-      this.log(chalk.yellow('Dry run — no changes applied.'));
-      return;
-    }
-
-    if (!flags.yes) {
-      const proceed = await confirm({ message: 'Apply changes?', default: true });
-      if (!proceed) {
-        this.log('Aborted.');
-        return;
-      }
-    }
-
-    // Verify openclaw health
-    const health = await this.openclawDriver.health();
-    if (!health.ok) {
-      this.error(
-        `OpenClaw is not reachable.\n\n` +
-          `  ${health.message || 'Could not connect to openclaw CLI.'}\n\n` +
-          `Make sure openclaw is installed and accessible, then try again.`,
-      );
-    }
+    if (this.isDryRun(flags)) return;
+    if (await this.confirmOrAbort(flags)) return;
+    await this.ensureHealthy();
 
     // Recompile the dress with new values
     const compiled = compileDress({
@@ -333,10 +314,7 @@ export default class DressUpdate extends BaseCommand {
       timezone: config.timezone,
     });
 
-    await this.stateManager.lock();
-    const snapshot = await this.gitManager.snapshot();
-
-    try {
+    await this.withAtomicOp(async () => {
       const tasks = new Listr(
         [
           {
@@ -463,19 +441,9 @@ export default class DressUpdate extends BaseCommand {
 
       await this.gitManager.commit('refactor', dressId, `update ${changeDesc}`);
 
-      // Reset waclaw session so changes take effect
-      const resetTask = new Listr(
-        [{ title: 'Resetting waclaw session', task: async () => this.resetWaclawSession() }],
-        { concurrent: false },
-      );
-      await resetTask.run();
+      await this.resetWaclawSessionTask();
 
       this.log(`\n${chalk.green('✓')} Updated ${chalk.bold(dressId)}: ${changeDesc}`);
-    } catch (err) {
-      if (snapshot) await this.gitManager.rollback(snapshot);
-      throw err;
-    } finally {
-      await this.stateManager.unlock();
-    }
+    });
   }
 }

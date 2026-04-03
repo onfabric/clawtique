@@ -1,4 +1,3 @@
-import { confirm } from '@inquirer/prompts';
 import { Flags } from '@oclif/core';
 import chalk from 'chalk';
 import { BaseCommand } from '#base.ts';
@@ -34,16 +33,7 @@ Run "clawtique doctor" after rollback to verify.`;
     this.log(`\n${chalk.bold('Last operation:')}`);
     this.log(`  ${lastCommit.message}\n`);
 
-    if (!flags.yes) {
-      const proceed = await confirm({
-        message: 'Roll back this operation?',
-        default: false,
-      });
-      if (!proceed) {
-        this.log('Aborted.');
-        return;
-      }
-    }
+    if (await this.confirmOrAbort(flags, 'Roll back this operation?', false)) return;
 
     await this.stateManager.lock();
     try {

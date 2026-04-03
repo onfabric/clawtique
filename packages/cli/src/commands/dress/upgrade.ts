@@ -465,37 +465,15 @@ export default class DressUpgrade extends BaseCommand {
       timezone: config.timezone,
     });
 
-    if (flags['dry-run']) {
-      this.log(chalk.yellow('Dry run — no changes applied.'));
-      return;
-    }
-
-    if (!flags.yes) {
-      const proceed = await confirm({ message: 'Apply upgrade?', default: true });
-      if (!proceed) {
-        this.log('Aborted.');
-        return;
-      }
-    }
-
-    // Verify openclaw health
-    const health = await this.openclawDriver.health();
-    if (!health.ok) {
-      this.error(
-        `OpenClaw is not reachable.\n\n` +
-          `  ${health.message || 'Could not connect to openclaw CLI.'}\n\n` +
-          `Make sure openclaw is installed and accessible, then try again.`,
-      );
-    }
+    if (this.isDryRun(flags)) return;
+    if (await this.confirmOrAbort(flags, 'Apply upgrade?')) return;
+    await this.ensureHealthy();
 
     // -----------------------------------------------------------------------
     // Phase: Apply
     // -----------------------------------------------------------------------
 
-    await this.stateManager.lock();
-    const snapshot = await this.gitManager.snapshot();
-
-    try {
+    await this.withAtomicOp(async () => {
       const appliedCrons: AppliedCron[] = [];
       const appliedFiles: string[] = [];
       const installedSkills: string[] = [...(entry.applied.installedSkills ?? [])];
@@ -764,45 +742,10 @@ export default class DressUpgrade extends BaseCommand {
 
       await this.gitManager.commit('feat', dress.id, `dress upgrade v${dress.version}`, body);
 
-      // Reset waclaw session
-      const resetTask = new Listr(
-        [{ title: 'Resetting waclaw session', task: async () => this.resetWaclawSession() }],
-        { concurrent: false },
-      );
-      await resetTask.run();
+      await this.resetWaclawSessionTask();
 
       this.log(`\n${chalk.green('✓')} Upgraded ${chalk.bold(dress.name)} to v${dress.version}!`);
-    } catch (err) {
-      if (snapshot) {
-        await this.gitManager.rollback(snapshot);
-      }
-      throw err;
-    } finally {
-      await this.stateManager.unlock();
-    }
+    });
   }
 
-  // -------------------------------------------------------------------------
-  // Helpers
-  // -------------------------------------------------------------------------
-
-  private collectOthersNeeds(
-    state: {
-      dresses: Record<string, DressEntry>;
-      lingerie: Record<string, { applied: { plugins: string[] } }>;
-    },
-    excludeId: string,
-  ): { plugins: Set<string>; skills: Set<string> } {
-    const plugins = new Set<string>();
-    const skills = new Set<string>();
-    for (const [id, e] of Object.entries(state.dresses)) {
-      if (id === excludeId) continue;
-      for (const p of e.applied.plugins) plugins.add(p);
-      for (const s of e.applied.skills) skills.add(s);
-    }
-    for (const e of Object.values(state.lingerie ?? {})) {
-      for (const p of e.applied.plugins) plugins.add(p);
-    }
-    return { plugins, skills };
-  }
 }

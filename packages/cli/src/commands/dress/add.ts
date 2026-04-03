@@ -502,37 +502,15 @@ export default class DressAdd extends BaseCommand {
     );
     this.log('');
 
-    if (flags['dry-run']) {
-      this.log(chalk.yellow('Dry run — no changes applied.'));
-      return;
-    }
-
-    if (!flags.yes) {
-      const proceed = await confirm({ message: 'Apply changes?', default: true });
-      if (!proceed) {
-        this.log('Aborted.');
-        return;
-      }
-    }
-
-    // Verify openclaw health
-    const health = await this.openclawDriver.health();
-    if (!health.ok) {
-      this.error(
-        `OpenClaw is not reachable.\n\n` +
-          `  ${health.message || 'Could not connect to openclaw CLI.'}\n\n` +
-          `Make sure openclaw is installed and accessible, then try again.`,
-      );
-    }
+    if (this.isDryRun(flags)) return;
+    if (await this.confirmOrAbort(flags)) return;
+    await this.ensureHealthy();
 
     // -----------------------------------------------------------------------
     // Phase: Apply
     // -----------------------------------------------------------------------
 
-    await this.stateManager.lock();
-    const snapshot = await this.gitManager.snapshot();
-
-    try {
+    await this.withAtomicOp(async () => {
       const appliedCrons: AppliedCron[] = [];
       const appliedFiles: string[] = [];
       const installedSkills: string[] = [];
@@ -713,22 +691,10 @@ export default class DressAdd extends BaseCommand {
 
       await this.gitManager.commit('feat', dress.id, `dress v${dress.version}`, body);
 
-      // Reset waclaw session so the new dress/dresscode is loaded on next message
-      const resetTask = new Listr(
-        [{ title: 'Resetting waclaw session', task: async () => this.resetWaclawSession() }],
-        { concurrent: false },
-      );
-      await resetTask.run();
+      await this.resetWaclawSessionTask();
 
       this.log(`\n${chalk.green('✓')} Dressed in ${chalk.bold(dress.name)}!`);
-    } catch (err) {
-      if (snapshot) {
-        await this.gitManager.rollback(snapshot);
-      }
-      throw err;
-    } finally {
-      await this.stateManager.unlock();
-    }
+    });
   }
 
   // -------------------------------------------------------------------------

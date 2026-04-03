@@ -2,7 +2,7 @@ import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import { confirm, input } from '@inquirer/prompts';
+import { confirm as confirmPrompt, input } from '@inquirer/prompts';
 import { Command, Flags } from '@oclif/core';
 import chalk from 'chalk';
 import { Listr } from 'listr2';
@@ -82,7 +82,7 @@ export abstract class BaseCommand extends Command {
         if (failOnSetupError) {
           this.error(`Plugin setup "${plugin.setupCommand}" failed (exit code ${exitCode}).`);
         }
-        const cont = await confirm({
+        const cont = await confirmPrompt({
           message: `Setup exited with code ${exitCode}. Did it complete successfully?`,
           default: true,
         });
@@ -140,6 +140,101 @@ export abstract class BaseCommand extends Command {
     const waclawSession = sessions.find((s) => s.key.includes(':waclaw:'));
     if (!waclawSession) return;
     await this.openclawDriver.sessionReset(waclawSession.sessionId);
+  }
+
+  /**
+   * Verify that OpenClaw is reachable. Calls `this.error()` if not.
+   */
+  protected async ensureHealthy(): Promise<void> {
+    const health = await this.openclawDriver.health();
+    if (!health.ok) {
+      this.error(
+        `OpenClaw is not reachable.\n\n` +
+          `  ${health.message || 'Could not connect to openclaw CLI.'}\n\n` +
+          `Make sure openclaw is installed and accessible, then try again.`,
+      );
+    }
+  }
+
+  /**
+   * Check if `--dry-run` is set and log a message if so.
+   * @returns `true` if dry-run mode is active (caller should `return`).
+   */
+  protected isDryRun(flags: { 'dry-run'?: boolean }): boolean {
+    if (flags['dry-run']) {
+      this.log(chalk.yellow('Dry run — no changes applied.'));
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Prompt user for confirmation unless `--yes` is set.
+   * @returns `true` if the user aborted (caller should `return`).
+   */
+  protected async confirmOrAbort(
+    flags: { yes?: boolean },
+    message = 'Apply changes?',
+    defaultValue = true,
+  ): Promise<boolean> {
+    if (!flags.yes) {
+      const proceed = await confirmPrompt({ message, default: defaultValue });
+      if (!proceed) {
+        this.log('Aborted.');
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Run `fn` inside a state lock with a git snapshot for rollback.
+   * On error, rolls back to the snapshot and re-throws.
+   */
+  protected async withAtomicOp(fn: () => Promise<void>): Promise<void> {
+    await this.stateManager.lock();
+    const snapshot = await this.gitManager.snapshot();
+
+    try {
+      await fn();
+    } catch (err) {
+      if (snapshot) await this.gitManager.rollback(snapshot);
+      throw err;
+    } finally {
+      await this.stateManager.unlock();
+    }
+  }
+
+  /**
+   * Reset the waclaw session wrapped in a Listr task with a spinner.
+   */
+  protected async resetWaclawSessionTask(): Promise<void> {
+    const task = new Listr(
+      [{ title: 'Resetting waclaw session', task: async () => this.resetWaclawSession() }],
+      { concurrent: false },
+    );
+    await task.run();
+  }
+
+  /**
+   * Collect plugins and skills used by other dresses and lingerie,
+   * excluding the specified dress. Used to avoid removing shared resources.
+   */
+  protected collectOthersNeeds(
+    state: { dresses: Record<string, { applied: { plugins: string[]; skills: string[] } }>; lingerie: Record<string, { applied: { plugins: string[] } }> },
+    excludeId: string,
+  ): { plugins: Set<string>; skills: Set<string> } {
+    const plugins = new Set<string>();
+    const skills = new Set<string>();
+    for (const [id, entry] of Object.entries(state.dresses)) {
+      if (id === excludeId) continue;
+      for (const p of entry.applied.plugins) plugins.add(p);
+      for (const s of entry.applied.skills) skills.add(s);
+    }
+    for (const entry of Object.values(state.lingerie ?? {})) {
+      for (const p of entry.applied.plugins) plugins.add(p);
+    }
+    return { plugins, skills };
   }
 
   protected async installLingerie(

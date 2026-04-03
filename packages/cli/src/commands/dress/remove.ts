@@ -152,28 +152,9 @@ export default class DressRemove extends BaseCommand {
     }
     this.log('');
 
-    if (flags['dry-run']) {
-      this.log(chalk.yellow('Dry run — no changes applied.'));
-      return;
-    }
-
-    // Verify openclaw is reachable before making any changes
-    const health = await this.openclawDriver.health();
-    if (!health.ok) {
-      this.error(
-        `OpenClaw is not reachable.\n\n` +
-          `  ${health.message || 'Could not connect to openclaw CLI.'}\n\n` +
-          `Make sure openclaw is installed and accessible, then try again.`,
-      );
-    }
-
-    if (!flags.yes) {
-      const proceed = await confirm({ message: 'Proceed?', default: true });
-      if (!proceed) {
-        this.log('Aborted.');
-        return;
-      }
-    }
+    if (this.isDryRun(flags)) return;
+    await this.ensureHealthy();
+    if (await this.confirmOrAbort(flags, 'Proceed?')) return;
 
     const workspaceFiles = entry.applied.workspaceFiles ?? [];
     let deleteWorkspace = false;
@@ -184,10 +165,7 @@ export default class DressRemove extends BaseCommand {
       });
     }
 
-    await this.stateManager.lock();
-    const snapshot = await this.gitManager.snapshot();
-
-    try {
+    await this.withAtomicOp(async () => {
       const tasks = new Listr(
         [
           {
@@ -310,20 +288,10 @@ export default class DressRemove extends BaseCommand {
 
       await this.gitManager.commit('revert', dressId, 'dress remove', body);
 
-      // Reset waclaw session so the removed dress/dresscode is no longer loaded
-      const resetTask = new Listr(
-        [{ title: 'Resetting waclaw session', task: async () => this.resetWaclawSession() }],
-        { concurrent: false },
-      );
-      await resetTask.run();
+      await this.resetWaclawSessionTask();
 
       this.log(`\n${chalk.green('✓')} Removed dress "${dressId}". Data preserved.`);
-    } catch (err) {
-      if (snapshot) await this.gitManager.rollback(snapshot);
-      throw err;
-    } finally {
-      await this.stateManager.unlock();
-    }
+    });
   }
 
   private findDependants(state: StateFile, dressId: string): string[] {
@@ -335,24 +303,6 @@ export default class DressRemove extends BaseCommand {
       }
     }
     return dependants;
-  }
-
-  private collectOthersNeeds(
-    state: StateFile,
-    excludeId: string,
-  ): { plugins: Set<string>; skills: Set<string> } {
-    const plugins = new Set<string>();
-    const skills = new Set<string>();
-    for (const [id, entry] of Object.entries(state.dresses)) {
-      if (id === excludeId) continue;
-      for (const p of entry.applied.plugins) plugins.add(p);
-      for (const s of entry.applied.skills) skills.add(s);
-    }
-    // Lingerie-managed plugins are never removed by dress remove
-    for (const entry of Object.values(state.lingerie ?? {})) {
-      for (const p of entry.applied.plugins) plugins.add(p);
-    }
-    return { plugins, skills };
   }
 
   private async stripHeartbeatRules(dressId: string): Promise<void> {

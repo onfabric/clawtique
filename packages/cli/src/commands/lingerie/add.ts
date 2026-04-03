@@ -1,4 +1,4 @@
-import { confirm, select } from '@inquirer/prompts';
+import { select } from '@inquirer/prompts';
 import { Args, Flags } from '@oclif/core';
 import chalk from 'chalk';
 import { BaseCommand } from '#base.ts';
@@ -107,33 +107,11 @@ export default class LingerieAdd extends BaseCommand {
     }
     this.log('');
 
-    if (flags['dry-run']) {
-      this.log(chalk.yellow('Dry run — no changes applied.'));
-      return;
-    }
+    if (this.isDryRun(flags)) return;
+    await this.ensureHealthy();
+    if (await this.confirmOrAbort(flags, 'Proceed?')) return;
 
-    // Verify openclaw is reachable
-    const health = await this.openclawDriver.health();
-    if (!health.ok) {
-      this.error(
-        `OpenClaw is not reachable.\n\n` +
-          `  ${health.message || 'Could not connect to openclaw CLI.'}\n\n` +
-          `Make sure openclaw is installed and accessible, then try again.`,
-      );
-    }
-
-    if (!flags.yes) {
-      const proceed = await confirm({ message: 'Proceed?', default: true });
-      if (!proceed) {
-        this.log('Aborted.');
-        return;
-      }
-    }
-
-    await this.stateManager.lock();
-    const snapshot = await this.gitManager.snapshot();
-
-    try {
+    await this.withAtomicOp(async () => {
       await this.installLingerie(registry, lingerieId!, uw, state);
 
       const commitParts: string[] = [];
@@ -152,11 +130,6 @@ export default class LingerieAdd extends BaseCommand {
 
       this.log(`\n${chalk.green('✓')} Lingerie "${uw.name}" installed.`);
       this.log(`  Run ${chalk.cyan('clawtique lingerie')} to see all lingerie.\n`);
-    } catch (err) {
-      if (snapshot) await this.gitManager.rollback(snapshot);
-      throw err;
-    } finally {
-      await this.stateManager.unlock();
-    }
+    });
   }
 }

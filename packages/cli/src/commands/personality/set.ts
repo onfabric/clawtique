@@ -1,10 +1,9 @@
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { confirm, select } from '@inquirer/prompts';
+import { select } from '@inquirer/prompts';
 import { Args, Flags } from '@oclif/core';
 import chalk from 'chalk';
-import { Listr } from 'listr2';
 import { BaseCommand } from '#base.ts';
 import type { PersonalityFile, ResolvedPersonality } from '#core/index.ts';
 import { ensureDressesReference, PERSONALITY_FILES } from '#core/index.ts';
@@ -119,13 +118,7 @@ export default class PersonalitySet extends BaseCommand {
     }
     this.log('');
 
-    if (!flags.yes) {
-      const proceed = await confirm({ message: 'Apply personality?', default: true });
-      if (!proceed) {
-        this.log('Aborted.');
-        return;
-      }
-    }
+    if (await this.confirmOrAbort(flags, 'Apply personality?')) return;
 
     // Apply
     await this.stateManager.lock();
@@ -157,12 +150,7 @@ export default class PersonalitySet extends BaseCommand {
       await this.stateManager.unlock();
     }
 
-    // Reset waclaw session so the new personality is loaded on next message
-    const resetTask = new Listr(
-      [{ title: 'Resetting waclaw session', task: async () => this.resetWaclawSession() }],
-      { concurrent: false },
-    );
-    await resetTask.run();
+    await this.resetWaclawSessionTask();
   }
 
   /**
