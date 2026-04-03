@@ -33,7 +33,7 @@
       },
     },
     "packages/browser-use-plugin": {
-      "name": "@onfabric/browser-use-plugin",
+      "name": "@onfabric/buclaw-plugin",
       "version": "0.0.1",
       "dependencies": {
         "@mariozechner/pi-agent-core": "^0.62.0",
@@ -413,7 +413,7 @@
 
     "@onfabric/agentmail-plugin": ["@onfabric/agentmail-plugin@workspace:packages/agentmail-plugin"],
 
-    "@onfabric/browser-use-plugin": ["@onfabric/browser-use-plugin@workspace:packages/browser-use-plugin"],
+    "@onfabric/buclaw-plugin": ["@onfabric/buclaw-plugin@workspace:packages/browser-use-plugin"],
 
     "@protobufjs/aspromise": ["@protobufjs/aspromise@1.1.2", "", {}, "sha512-j+gKExEuLmKwvz3OgROXtrJ2UG2x8Ch2YZUxahh+s1F2HZ+wAceUNLkvy6zKCPVRkU++ZWQrdxsUeQXmcg4uoQ=="],
 
