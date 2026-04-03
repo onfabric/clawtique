@@ -28,8 +28,5 @@
     }
   },
   "toolsSection": "TOOLS.md",
-  "resources": [
-    "platforms/INDEX.md",
-    "platforms/opentable.md"
-  ]
+  "resources": ["platforms/INDEX.md", "platforms/opentable.md"]
 }
