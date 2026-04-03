@@ -16,9 +16,15 @@
     "configs": [
       { "key": "tools.web.fetch.enabled", "value": true },
       { "key": "tools.web.search.enabled", "value": true },
-      { "key": "tools.web.search.provider", "value": "duckduckgo" },
-      { "key": "plugins.entries.duckduckgo.enabled", "value": true }
+      { "key": "tools.web.search.provider", "value": "exa" }
     ]
+  },
+  "configPrefix": "plugins.entries.exa.config.webSearch",
+  "properties": {
+    "apiKey": {
+      "description": "Exa AI API key",
+      "required": true
+    }
   },
   "toolsSection": "TOOLS.md"
 }
