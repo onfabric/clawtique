@@ -108,6 +108,39 @@ export abstract class BaseCommand extends Command {
     }
   }
 
+  /**
+   * Restart the OpenClaw gateway and wait for it to become healthy.
+   * Never throws — warns the user to restart manually on failure.
+   * @returns `true` if the gateway became healthy, `false` otherwise.
+   */
+  protected async restartGateway(): Promise<boolean> {
+    try {
+      await this.openclawDriver.gatewayRestart();
+      for (let i = 0; i < 10; i++) {
+        await new Promise((r) => setTimeout(r, 2_000));
+        const h = await this.openclawDriver.health();
+        if (h.ok) return true;
+      }
+    } catch {
+      // fall through to warning
+    }
+    this.warn(
+      'Gateway failed to restart. Run "openclaw gateway restart" manually to apply changes.',
+    );
+    return false;
+  }
+
+  /**
+   * Reset the waclaw agent session so config/plugin changes are picked up.
+   * Silently skips if no waclaw session exists.
+   */
+  protected async resetWaclawSession(): Promise<void> {
+    const sessions = await this.openclawDriver.sessionList();
+    const waclawSession = sessions.find((s) => s.key.includes(':waclaw:'));
+    if (!waclawSession) return;
+    await this.openclawDriver.sessionReset(waclawSession.sessionId);
+  }
+
   protected async installLingerie(
     registry: RegistryProvider,
     lingerieId: string,
@@ -217,26 +250,16 @@ export abstract class BaseCommand extends Command {
       this.log(`  ${chalk.green('+')} tools section`);
     }
 
-    // Restart gateway if anything changed
+    // Restart gateway & reset session if anything changed
     if (installedPlugins.length > 0 || configKeys.length > 0) {
-      const restartTask = new Listr(
+      const postInstallTasks = new Listr(
         [
-          {
-            title: 'Restarting gateway',
-            task: async () => {
-              await this.openclawDriver.gatewayRestart();
-              for (let i = 0; i < 10; i++) {
-                await new Promise((r) => setTimeout(r, 2_000));
-                const h = await this.openclawDriver.health();
-                if (h.ok) return;
-              }
-              throw new Error('Gateway did not become healthy after restart');
-            },
-          },
+          { title: 'Restarting gateway', task: async () => this.restartGateway() },
+          { title: 'Resetting waclaw session', task: async () => this.resetWaclawSession() },
         ],
         { concurrent: false },
       );
-      await restartTask.run();
+      await postInstallTasks.run();
     }
 
     // Save lingerie to state

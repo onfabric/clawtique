@@ -586,15 +586,7 @@ export default class DressUpgrade extends BaseCommand {
           {
             title: 'Restarting gateway',
             skip: () => !needsRestart,
-            task: async () => {
-              await this.openclawDriver.gatewayRestart();
-              for (let i = 0; i < 10; i++) {
-                await new Promise((r) => setTimeout(r, 2_000));
-                const h = await this.openclawDriver.health();
-                if (h.ok) return;
-              }
-              throw new Error('Gateway did not become healthy after restart');
-            },
+            task: async () => this.restartGateway(),
           },
           {
             title: 'Installing and updating skills',
@@ -774,17 +766,7 @@ export default class DressUpgrade extends BaseCommand {
 
       // Reset waclaw session
       const resetTask = new Listr(
-        [
-          {
-            title: 'Resetting waclaw session',
-            task: async () => {
-              const sessions = await this.openclawDriver.sessionList();
-              const waclawSession = sessions.find((s) => s.key.includes(':waclaw:'));
-              if (!waclawSession) return;
-              await this.openclawDriver.sessionReset(waclawSession.sessionId);
-            },
-          },
-        ],
+        [{ title: 'Resetting waclaw session', task: async () => this.resetWaclawSession() }],
         { concurrent: false },
       );
       await resetTask.run();

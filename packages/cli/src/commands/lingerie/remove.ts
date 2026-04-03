@@ -195,9 +195,11 @@ export default class LingerieRemove extends BaseCommand {
           {
             title: 'Restarting gateway',
             skip: () => pluginsToRemove.length === 0 && configKeys.length === 0,
-            task: async () => {
-              await this.openclawDriver.gatewayRestart();
-            },
+            task: async () => this.restartGateway(),
+          },
+          {
+            title: 'Resetting waclaw session',
+            task: async () => this.resetWaclawSession(),
           },
           {
             title: 'Saving state',

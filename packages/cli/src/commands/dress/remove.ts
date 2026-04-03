@@ -275,9 +275,7 @@ export default class DressRemove extends BaseCommand {
           {
             title: 'Restarting gateway',
             skip: () => pluginsToRemove.length === 0,
-            task: async () => {
-              await this.openclawDriver.gatewayRestart();
-            },
+            task: async () => this.restartGateway(),
           },
           {
             title: 'Updating DRESSES.md',
@@ -314,17 +312,7 @@ export default class DressRemove extends BaseCommand {
 
       // Reset waclaw session so the removed dress/dresscode is no longer loaded
       const resetTask = new Listr(
-        [
-          {
-            title: 'Resetting waclaw session',
-            task: async () => {
-              const sessions = await this.openclawDriver.sessionList();
-              const waclawSession = sessions.find((s) => s.key.includes(':waclaw:'));
-              if (!waclawSession) return;
-              await this.openclawDriver.sessionReset(waclawSession.sessionId);
-            },
-          },
-        ],
+        [{ title: 'Resetting waclaw session', task: async () => this.resetWaclawSession() }],
         { concurrent: false },
       );
       await resetTask.run();
