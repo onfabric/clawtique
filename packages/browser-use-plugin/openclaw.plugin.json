@@ -1,7 +1,7 @@
 {
   "id": "buclaw",
   "name": "Browser Use Agent",
-  "description": "Delegate browser tasks to Browser Use's cloud AI agent",
+  "description": "Delegate browser tasks to Browser Use's AI agent",
   "configSchema": {
     "type": "object",
     "required": [],

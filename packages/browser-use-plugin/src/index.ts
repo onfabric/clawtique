@@ -8,7 +8,7 @@ import { registerStopSessionTool } from './tools/stop-session';
 export default definePluginEntry({
   id: PLUGIN_ID,
   name: 'Browser Use Agent',
-  description: 'Delegate browser tasks to Browser Use cloud AI agent',
+  description: "Delegate browser tasks to Browser Use's AI agent",
   configSchema,
   register(api) {
     const cfg = parseConfig(api.pluginConfig);
