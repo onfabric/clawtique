@@ -4,7 +4,7 @@ import type { CountryCode } from './browser-use';
 /**
  * The ID of the plugin as declared in the `openclaw.plugin.json` file.
  */
-export const PLUGIN_ID = 'browser-use-agent';
+export const PLUGIN_ID = 'buclaw';
 
 export type BrowserUsePluginConfig = {
   apiKey: string;

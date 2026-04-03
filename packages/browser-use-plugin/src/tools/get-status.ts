@@ -23,7 +23,7 @@ export function registerGetStatusTool(api: OpenClawPluginApi, client: BrowserUse
 
         const status = session.status ?? 'unknown';
 
-        api.logger.info(`browser-use-agent: session ${params.session_id} status: ${status}`);
+        api.logger.info(`buclaw: session ${params.session_id} status: ${status}`);
 
         return {
           content: [
@@ -41,7 +41,7 @@ export function registerGetStatusTool(api: OpenClawPluginApi, client: BrowserUse
           details: { sessionId: params.session_id, status, session },
         };
       } catch (err) {
-        api.logger.error(`browser-use-agent: error checking status: ${String(err)}`);
+        api.logger.error(`buclaw: error checking status: ${String(err)}`);
         return {
           content: [
             {

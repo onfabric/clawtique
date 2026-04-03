@@ -35,7 +35,7 @@ export function registerRunTaskTool(
       'Returns the agent output.',
     parameters: RunTaskParametersSchema,
     async execute(_id, params) {
-      api.logger.info('browser-use-agent: starting new browser agent task...');
+      api.logger.info('buclaw: starting new browser agent task...');
 
       try {
         const { id: sessionId } = await client.sessions.create({
@@ -62,7 +62,7 @@ export function registerRunTaskTool(
           });
         }
 
-        api.logger.info(`browser-use-agent: task ${taskStatus} (session: ${sessionId})`);
+        api.logger.info(`buclaw: task ${taskStatus} (session: ${sessionId})`);
 
         return {
           content: [
@@ -93,7 +93,7 @@ export function registerRunTaskTool(
         const errMsg = String(err);
         const isTimeout = errMsg.includes('timeout') || errMsg.includes('Timeout');
 
-        api.logger.error(`browser-use-agent: ${isTimeout ? 'timed out' : 'error'}: ${errMsg}`);
+        api.logger.error(`buclaw: ${isTimeout ? 'timed out' : 'error'}: ${errMsg}`);
 
         return {
           content: [

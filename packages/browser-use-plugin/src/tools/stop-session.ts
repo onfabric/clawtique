@@ -41,11 +41,11 @@ export function registerStopSessionTool(api: OpenClawPluginApi, client: BrowserU
           await client.sessions.stop(sessionId);
           removeSession(sessionId);
           results.push({ sessionId, success: true });
-          api.logger.info(`browser-use-agent: session ${sessionId} stopped`);
+          api.logger.info(`buclaw: session ${sessionId} stopped`);
         } catch (err) {
           removeSession(sessionId);
           results.push({ sessionId, success: false, error: String(err) });
-          api.logger.warn(`browser-use-agent: error stopping session ${sessionId}: ${String(err)}`);
+          api.logger.warn(`buclaw: error stopping session ${sessionId}: ${String(err)}`);
         }
       }
 

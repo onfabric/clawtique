@@ -20,7 +20,7 @@ export default definePluginEntry({
 
     if (missing.length > 0) {
       api.logger.warn(
-        `browser-use-agent: missing ${missing.join(', ')} in cdpUrl. ` +
+        `buclaw: missing ${missing.join(', ')} in cdpUrl. ` +
           'Install the browser-use lingerie first: clawtique lingerie add browser-use',
       );
       return;
@@ -33,7 +33,7 @@ export default definePluginEntry({
     registerStopSessionTool(api, client);
 
     api.logger.info(
-      `browser-use-agent: registered tools (profile: ${cfg.profileId}, proxy: ${cfg.proxyCountryCode})`,
+      `buclaw: registered tools (profile: ${cfg.profileId}, proxy: ${cfg.proxyCountryCode})`,
     );
   },
 });

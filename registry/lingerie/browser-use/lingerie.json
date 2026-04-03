@@ -1,12 +1,12 @@
 {
-  "id": "browser-use",
+  "id": "buclaw",
   "name": "Browser Use Agent",
   "version": "1.1.0",
   "description": "Cloud browser via AI browser agent — connects OpenClaw to Browser Use for web browsing capabilities.",
   "plugins": [
     {
-      "id": "browser-use-agent",
-      "spec": "@onfabric/browser-use-plugin",
+      "id": "buclaw",
+      "spec": "@onfabric/buclaw-plugin",
       "setupNotes": [
         "Get your API key from https://cloud.browser-use.com/settings"
       ]
