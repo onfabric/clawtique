@@ -465,17 +465,7 @@ export default class DressUpdate extends BaseCommand {
 
       // Reset waclaw session so changes take effect
       const resetTask = new Listr(
-        [
-          {
-            title: 'Resetting waclaw session',
-            task: async () => {
-              const sessions = await this.openclawDriver.sessionList();
-              const waclawSession = sessions.find((s) => s.key.includes(':waclaw:'));
-              if (!waclawSession) return;
-              await this.openclawDriver.sessionReset(waclawSession.sessionId);
-            },
-          },
-        ],
+        [{ title: 'Resetting waclaw session', task: async () => this.resetWaclawSession() }],
         { concurrent: false },
       );
       await resetTask.run();

@@ -159,17 +159,7 @@ export default class PersonalitySet extends BaseCommand {
 
     // Reset waclaw session so the new personality is loaded on next message
     const resetTask = new Listr(
-      [
-        {
-          title: 'Resetting waclaw session',
-          task: async () => {
-            const sessions = await this.openclawDriver.sessionList();
-            const waclawSession = sessions.find((s) => s.key.includes(':waclaw:'));
-            if (!waclawSession) return;
-            await this.openclawDriver.sessionReset(waclawSession.sessionId);
-          },
-        },
-      ],
+      [{ title: 'Resetting waclaw session', task: async () => this.resetWaclawSession() }],
       { concurrent: false },
     );
     await resetTask.run();

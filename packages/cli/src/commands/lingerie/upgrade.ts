@@ -283,15 +283,11 @@ export default class LingerieUpgrade extends BaseCommand {
           {
             title: 'Restarting gateway',
             skip: () => !needsRestart,
-            task: async () => {
-              await this.openclawDriver.gatewayRestart();
-              for (let i = 0; i < 10; i++) {
-                await new Promise((r) => setTimeout(r, 2_000));
-                const h = await this.openclawDriver.health();
-                if (h.ok) return;
-              }
-              throw new Error('Gateway did not become healthy after restart');
-            },
+            task: async () => this.restartGateway(),
+          },
+          {
+            title: 'Resetting waclaw session',
+            task: async () => this.resetWaclawSession(),
           },
           {
             title: 'Updating tools section',

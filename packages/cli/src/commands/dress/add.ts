@@ -564,20 +564,7 @@ export default class DressAdd extends BaseCommand {
         // Restart gateway
         this.log('');
         const restartTask = new Listr(
-          [
-            {
-              title: 'Restarting gateway',
-              task: async () => {
-                await this.openclawDriver.gatewayRestart();
-                for (let i = 0; i < 10; i++) {
-                  await new Promise((r) => setTimeout(r, 2_000));
-                  const h = await this.openclawDriver.health();
-                  if (h.ok) return;
-                }
-                throw new Error('Gateway did not become healthy after restart');
-              },
-            },
-          ],
+          [{ title: 'Restarting gateway', task: async () => this.restartGateway() }],
           { concurrent: false },
         );
         await restartTask.run();
@@ -728,17 +715,7 @@ export default class DressAdd extends BaseCommand {
 
       // Reset waclaw session so the new dress/dresscode is loaded on next message
       const resetTask = new Listr(
-        [
-          {
-            title: 'Resetting waclaw session',
-            task: async () => {
-              const sessions = await this.openclawDriver.sessionList();
-              const waclawSession = sessions.find((s) => s.key.includes(':waclaw:'));
-              if (!waclawSession) return;
-              await this.openclawDriver.sessionReset(waclawSession.sessionId);
-            },
-          },
-        ],
+        [{ title: 'Resetting waclaw session', task: async () => this.resetWaclawSession() }],
         { concurrent: false },
       );
       await resetTask.run();
