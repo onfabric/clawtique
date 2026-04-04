@@ -26,7 +26,7 @@ import {
   type SkillMeta,
   validateDress,
 } from '#lib/compile.ts';
-import { checkbox, confirm, input, select } from '#lib/prompt.ts';
+import { checkbox, confirm, input, isInteractive, select } from '#lib/prompt.ts';
 import { createRegistryProvider } from '#lib/registry.ts';
 
 const ALL_DAYS: Weekday[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
@@ -221,10 +221,12 @@ export default class DressAdd extends BaseCommand {
     // Check lingerie
     for (const uwId of dress.requires.lingerie) {
       if (!state.lingerie?.[uwId]) {
-        const install = await confirm({
-          message: `Dress "${dress.name}" requires lingerie "${uwId}". Install it now?`,
-          default: true,
-        });
+        const install = flags.yes || !isInteractive()
+          ? true
+          : await confirm({
+              message: `Dress "${dress.name}" requires lingerie "${uwId}". Install it now?`,
+              default: true,
+            });
         if (!install) {
           this.log("  You wouldn't go out without lingerie, would you?");
           this.error(
@@ -264,6 +266,58 @@ export default class DressAdd extends BaseCommand {
     // -----------------------------------------------------------------------
     // Phase: Prompts — collect schedule + skill params
     // -----------------------------------------------------------------------
+
+    // In non-interactive mode without schedule/param flags, use defaults
+    // and show what's configurable so the agent knows for next time
+    if (!isInteractive()) {
+      if (dress.crons.length > 0 && !flags.schedules) {
+        const defaults = Object.fromEntries(
+          dress.crons.map((c) => {
+            let channel: string | undefined;
+            if (c.channel) channel = c.channel;
+            else if (dress.requires.lingerie.length === 1) channel = dress.requires.lingerie[0];
+            return [
+              c.id,
+              {
+                time: c.defaults.time ?? '09:00',
+                days: c.defaults.days ?? ALL_DAYS,
+                ...(channel ? { channel } : {}),
+              },
+            ];
+          }),
+        );
+        flags.schedules = JSON.stringify(defaults);
+        this.log(chalk.dim(`  Using default cron schedules. To customize:`));
+        this.log(chalk.dim(`    --schedules '${flags.schedules}'`));
+        this.log('');
+      }
+
+      const skillsWithParams = Object.entries(dress.skills).filter(
+        ([, s]) => Object.keys(s.params).length > 0,
+      );
+      if (skillsWithParams.length > 0 && !flags.params) {
+        const defaults: Record<string, Record<string, unknown>> = {};
+        for (const [skillId, skillDef] of skillsWithParams) {
+          defaults[skillId] = {};
+          for (const [paramName, paramDef] of Object.entries(skillDef.params)) {
+            defaults[skillId][paramName] = paramDef.default;
+          }
+        }
+        flags.params = JSON.stringify(defaults);
+        this.log(chalk.dim(`  Using default skill params. To customize:`));
+        this.log(chalk.dim(`    --params '${flags.params}'`));
+        for (const [skillId, skillDef] of skillsWithParams) {
+          for (const [paramName, paramDef] of Object.entries(skillDef.params)) {
+            this.log(
+              chalk.dim(
+                `      ${skillId}.${paramName} (${paramDef.type}, default: ${JSON.stringify(paramDef.default)})${paramDef.description ? ` — ${paramDef.description}` : ''}`,
+              ),
+            );
+          }
+        }
+        this.log('');
+      }
+    }
 
     // Cron schedules — from flag or interactive prompts
     const presetSchedules = flags.schedules

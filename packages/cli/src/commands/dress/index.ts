@@ -56,6 +56,17 @@ export default class DressList extends BaseCommand {
       };
     });
 
+    if (!flags.interactive) {
+      this.log('\nUse --json to list dresses programmatically, or call subcommands directly:');
+      this.log('  clawtique dress add <id>       Add a dress (use --yes to accept defaults)');
+      this.log('  clawtique dress remove <id>    Remove a dress');
+      this.log('  clawtique dress info <id>      Show dress details');
+      this.log('  clawtique dress --json         List all dresses as JSON');
+      this.log('\nRun "clawtique dress --help" for all options.');
+      this.log(chalk.dim('Note: interactive mode (-i) is meant for human operators, not agents.\n'));
+      return;
+    }
+
     const { action, id } = await select({
       message: 'Dresses',
       choices,

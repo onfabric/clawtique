@@ -17,7 +17,7 @@ import {
   getOpenClawPaths,
   type OpenClawPaths,
 } from '#lib/paths.ts';
-import { confirm as confirmPrompt, input, setInteractive } from '#lib/prompt.ts';
+import { confirm as confirmPrompt, input, isInteractive, setInteractive } from '#lib/prompt.ts';
 import type { RegistryProvider } from '#lib/registry.ts';
 import { StateManager } from '#lib/state.ts';
 
@@ -223,7 +223,7 @@ export abstract class BaseCommand extends Command {
     message = 'Apply changes?',
     defaultValue = true,
   ): Promise<boolean> {
-    if (!flags.yes) {
+    if (!flags.yes && isInteractive()) {
       const proceed = await confirmPrompt({ message, default: defaultValue });
       if (!proceed) {
         this.log('Aborted.');

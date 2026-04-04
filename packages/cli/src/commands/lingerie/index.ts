@@ -72,6 +72,17 @@ export default class LingerieList extends BaseCommand {
       };
     });
 
+    if (!flags.interactive) {
+      this.log('\nUse --json to list lingerie programmatically, or call subcommands directly:');
+      this.log('  clawtique lingerie add <id>       Add lingerie (use --yes to accept defaults)');
+      this.log('  clawtique lingerie remove <id>    Remove lingerie');
+      this.log('  clawtique lingerie info <id>      Show lingerie details');
+      this.log('  clawtique lingerie --json         List all lingerie as JSON');
+      this.log('\nRun "clawtique lingerie --help" for all options.');
+      this.log(chalk.dim('Note: interactive mode (-i) is meant for human operators, not agents.\n'));
+      return;
+    }
+
     const { action, id } = await select({
       message: 'Lingerie',
       choices,
