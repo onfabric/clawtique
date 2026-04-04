@@ -61,6 +61,8 @@ export default class DressList extends BaseCommand {
       choices,
     });
 
-    await this.config.runCommand(`dress:${action}`, [id]);
+    const args = [id];
+    if (flags.interactive) args.push('-i');
+    await this.config.runCommand(`dress:${action}`, args);
   }
 }

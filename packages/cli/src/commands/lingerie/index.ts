@@ -77,6 +77,8 @@ export default class LingerieList extends BaseCommand {
       choices,
     });
 
-    await this.config.runCommand(`lingerie:${action}`, [id]);
+    const args = [id];
+    if (flags.interactive) args.push('-i');
+    await this.config.runCommand(`lingerie:${action}`, args);
   }
 }
