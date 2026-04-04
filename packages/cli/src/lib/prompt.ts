@@ -6,11 +6,11 @@
  * This prevents agents from hanging on prompts they cannot answer.
  */
 import {
-  input as _input,
-  select as _select,
   checkbox as _checkbox,
   confirm as _confirm,
+  input as _input,
   search as _search,
+  select as _select,
 } from '@inquirer/prompts';
 
 let _interactive = false;

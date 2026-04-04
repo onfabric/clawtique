@@ -1,8 +1,8 @@
-import { select } from '#lib/prompt.ts';
 import { Args, Flags } from '@oclif/core';
 import chalk from 'chalk';
 import { BaseCommand } from '#base.ts';
 import type { LingerieJson } from '#core/index.ts';
+import { select } from '#lib/prompt.ts';
 import { createRegistryProvider } from '#lib/registry.ts';
 
 export default class LingerieAdd extends BaseCommand {

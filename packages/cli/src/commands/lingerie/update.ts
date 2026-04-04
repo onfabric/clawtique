@@ -1,10 +1,10 @@
-import { confirm, select } from '#lib/prompt.ts';
 import { Args, Flags } from '@oclif/core';
 import chalk from 'chalk';
 import { Listr } from 'listr2';
 import { BaseCommand } from '#base.ts';
 import type { LingerieJson } from '#core/index.ts';
 import { collectLingerieConfig } from '#lib/lingerie-config.ts';
+import { confirm, select } from '#lib/prompt.ts';
 import { createRegistryProvider } from '#lib/registry.ts';
 
 export default class LingerieUpdate extends BaseCommand {

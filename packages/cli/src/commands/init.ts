@@ -1,7 +1,6 @@
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { confirm, input, search, setInteractive } from '#lib/prompt.ts';
 import { Command, Flags } from '@oclif/core';
 import chalk from 'chalk';
 import type { ClawtiqueConfig, StateFile } from '#core/index.ts';
@@ -9,6 +8,7 @@ import { ensureDressesReference, INITIAL_DRESSES_MD } from '#core/index.ts';
 import { GitManager } from '#lib/git.ts';
 import { LocalOpenClawDriver } from '#lib/openclaw.ts';
 import { getClawtiquePaths, getOpenClawPaths } from '#lib/paths.ts';
+import { confirm, input, search, setInteractive } from '#lib/prompt.ts';
 
 export default class Init extends Command {
   static override summary = 'Initialize clawtique for an OpenClaw instance';
@@ -108,8 +108,7 @@ export default class Init extends Command {
     if (!timezone) {
       const sorted = Intl.supportedValuesOf('timeZone');
       const pivot = sorted.indexOf('Europe/London');
-      const allTimezones =
-        pivot > 0 ? [...sorted.slice(pivot), ...sorted.slice(0, pivot)] : sorted;
+      const allTimezones = pivot > 0 ? [...sorted.slice(pivot), ...sorted.slice(0, pivot)] : sorted;
 
       timezone = await search({
         message: 'Search for your timezone',

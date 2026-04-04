@@ -3,14 +3,13 @@ import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { Command, Flags } from '@oclif/core';
-import { collectLingerieConfig } from '#lib/lingerie-config.ts';
-import { confirm as confirmPrompt, input, setInteractive } from '#lib/prompt.ts';
 import chalk from 'chalk';
 import { Listr } from 'listr2';
 import type { ClawtiqueConfig, LingerieJson, PluginDef, StateFile } from '#core/index.ts';
 import { injectToolsSection } from '#core/index.ts';
 import { clawtiqueConfigSchema } from '#core/schemas/state.ts';
 import { GitManager } from '#lib/git.ts';
+import { collectLingerieConfig } from '#lib/lingerie-config.ts';
 import { LocalOpenClawDriver } from '#lib/openclaw.ts';
 import {
   type ClawtiquePaths,
@@ -18,6 +17,7 @@ import {
   getOpenClawPaths,
   type OpenClawPaths,
 } from '#lib/paths.ts';
+import { confirm as confirmPrompt, input, setInteractive } from '#lib/prompt.ts';
 import type { RegistryProvider } from '#lib/registry.ts';
 import { StateManager } from '#lib/state.ts';
 
